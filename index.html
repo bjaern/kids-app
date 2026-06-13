@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="TIPSPROMENAD">
-<meta name="theme-color" content="#1a1aff">
+<meta name="theme-color" content="#8b0e1a">
 <title>TIPSPROMENAD</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
@@ -16,10 +16,10 @@
     font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
     text-transform: uppercase;
     -webkit-user-select: none; user-select: none;
-    background: #1a1aff;
+    background: #8b0e1a;
   }
   body {
-    background: linear-gradient(160deg, #4f6bff 0%, #7c4dff 50%, #b14dff 100%);
+    background: linear-gradient(160deg, #d62828 0%, #9b0e1a 55%, #5e0710 100%);
     display: flex; flex-direction: column;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     color: #fff;
@@ -43,26 +43,26 @@
     margin-bottom: 8px;
   }
   .logo .emoji { display:block; font-size: 80px; margin-bottom: 8px; }
-  .subtitle { font-size: 26px; font-weight: 700; color: #ffe14d; margin-bottom: 48px; }
+  .subtitle { font-size: 26px; font-weight: 700; color: #ffd23f; margin-bottom: 48px; }
   .big-btn {
     font-family: inherit; text-transform: uppercase;
     border: none; border-radius: 28px;
     font-weight: 900; cursor: pointer;
     min-height: 90px; padding: 0 56px;
-    font-size: 36px; color: #1a1aff;
-    background: #ffe14d;
-    box-shadow: 0 8px 0 #c9ab00;
+    font-size: 36px; color: #7a0a14;
+    background: linear-gradient(180deg, #ffe27a 0%, #ffcc00 100%);
+    box-shadow: 0 8px 0 #b8860b;
     transition: transform .08s, box-shadow .08s;
   }
-  .big-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #c9ab00; }
+  .big-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #b8860b; }
 
   /* ---- QUIZ SCREEN ---- */
   .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 22px; }
-  .progress { font-size: 24px; font-weight: 800; color: #ffe14d; }
+  .progress { font-size: 24px; font-weight: 800; color: #ffd23f; }
   .dots { display:flex; gap: 10px; }
   .dot { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.3); }
-  .dot.done { background: #ffe14d; }
-  .dot.cur { background: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,0.35); }
+  .dot.done { background: #ffd23f; }
+  .dot.cur { background: #e8eaed; box-shadow: 0 0 0 4px rgba(232,234,237,0.4); }
 
   .question {
     font-size: 40px; font-weight: 900; line-height: 1.15;
@@ -76,14 +76,14 @@
     border: none; border-radius: 22px;
     min-height: 92px; padding: 16px 26px;
     font-size: 28px; font-weight: 800; text-align: left;
-    background: #fff; color: #2a2a55; cursor: pointer;
-    box-shadow: 0 6px 0 rgba(0,0,0,0.22);
+    background: linear-gradient(180deg, #ffffff 0%, #d4d8de 100%); color: #5e0710; cursor: pointer;
+    box-shadow: 0 6px 0 #9aa0a8;
     transition: transform .08s, box-shadow .08s, background .15s;
   }
-  .answer:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.22); }
+  .answer:active { transform: translateY(4px); box-shadow: 0 2px 0 #9aa0a8; }
   .answer .label {
     flex: 0 0 auto; width: 58px; height: 58px; border-radius: 50%;
-    background: #1a1aff; color: #fff;
+    background: linear-gradient(180deg, #ffe27a 0%, #ffcc00 100%); color: #7a0a14;
     display:flex; align-items:center; justify-content:center;
     font-size: 30px; font-weight: 900;
   }
@@ -98,7 +98,7 @@
     text-align:center; font-size: 34px; font-weight: 900;
     min-height: 46px; margin: 26px 0 14px; line-height: 1.1;
   }
-  .feedback.good { color: #ffe14d; }
+  .feedback.good { color: #ffd23f; }
   .feedback.bad { color: #fff; }
 
   .next-wrap { display:flex; justify-content:center; margin-top: 6px; min-height: 96px; }
@@ -107,7 +107,7 @@
   /* ---- SUMMARY SCREEN ---- */
   #summary { align-items: center; text-align: center; }
   .sum-emoji { font-size: 72px; margin-bottom: 4px; }
-  .sum-score { font-size: 80px; font-weight: 900; color: #ffe14d; line-height: 1; margin-bottom: 6px; }
+  .sum-score { font-size: 80px; font-weight: 900; color: #ffd23f; line-height: 1; margin-bottom: 6px; }
   .sum-msg { font-size: 34px; font-weight: 900; margin-bottom: 24px; line-height: 1.15; }
   .review { width: 100%; max-width: 760px; display:flex; flex-direction:column; gap: 12px; margin-bottom: 28px; }
   .review-item {
@@ -117,7 +117,7 @@
   }
   .review-item .mark { font-size: 34px; flex: 0 0 auto; }
   .review-item .rq { font-size: 20px; font-weight: 800; line-height: 1.2; }
-  .review-item .ra { font-size: 17px; font-weight: 700; color: #ffe14d; margin-top: 3px; }
+  .review-item .ra { font-size: 17px; font-weight: 700; color: #ffd23f; margin-top: 3px; }
 </style>
 </head>
 <body>
@@ -333,7 +333,7 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-const CONFETTI_COLORS = ["#ffe14d", "#ff4d5e", "#2ecc71", "#4f6bff", "#b14dff", "#ff9c33", "#ffffff"];
+const CONFETTI_COLORS = ["#ffcc00", "#ffd23f", "#d62828", "#c1121f", "#e8eaed", "#c0c5cc", "#b8860b", "#ffffff"];
 function launchConfetti(amount) {
   for (let i = 0; i < amount; i++) {
     confettiPieces.push({
