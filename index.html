@@ -200,6 +200,29 @@
   .flag-answer.wrong { background: #ff4d5e; color: #fff; box-shadow: 0 6px 0 #c12b3a; }
   .flag-answer.dim { opacity: 0.45; }
   .review-item .rflag { font-size: 34px; flex: 0 0 auto; }
+
+  /* ---- RHYME SCREEN ---- */
+  #rim, #rimSummary { position: relative; }
+  #rimSummary { align-items: center; text-align: center; }
+  .rim-prompt { font-size: 26px; font-weight: 800; color: #ffd23f; text-align: center; margin: 8px 0 4px; }
+  .rim-word {
+    font-size: clamp(52px, 13vw, 96px); font-weight: 900; text-align: center;
+    margin: 0 0 32px; line-height: 1; text-shadow: 0 5px 0 rgba(0,0,0,0.18);
+  }
+  .rim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; max-width: 760px; width: 100%; margin: 0 auto; }
+  .rim-answer {
+    font-family: inherit; text-transform: uppercase;
+    border: none; border-radius: 22px; min-height: 104px;
+    font-size: 34px; font-weight: 800; cursor: pointer;
+    background: linear-gradient(180deg, #ffffff 0%, #d4d8de 100%); color: #5e0710;
+    box-shadow: 0 6px 0 #9aa0a8;
+    transition: transform .08s, box-shadow .08s, background .15s;
+  }
+  .rim-answer:active { transform: translateY(4px); box-shadow: 0 2px 0 #9aa0a8; }
+  .rim-answer.locked { pointer-events: none; }
+  .rim-answer.correct { background: #2ecc71; color: #fff; box-shadow: 0 6px 0 #1e9c54; }
+  .rim-answer.wrong { background: #ff4d5e; color: #fff; box-shadow: 0 6px 0 #c12b3a; }
+  .rim-answer.dim { opacity: 0.45; }
 </style>
 </head>
 <body>
@@ -213,6 +236,7 @@
     <button class="big-btn mode-btn" data-mode="quiz"><span class="stars">🚶</span><span class="lbl" id="quizModeLbl">TIPSPROMENAD</span></button>
     <button class="big-btn mode-btn" data-mode="math"><span class="stars">➕</span><span class="lbl" id="mathModeLbl">MATTELEKEN</span></button>
     <button class="big-btn mode-btn" data-mode="flag"><span class="stars">🚩</span><span class="lbl" id="flagModeLbl">FLAGGQUIZ</span></button>
+    <button class="big-btn mode-btn" data-mode="rim"><span class="stars">🎤</span><span class="lbl" id="rimModeLbl">RIMGISSAREN</span></button>
   </div>
 </div>
 
@@ -309,6 +333,34 @@
     <button class="big-btn" id="flagAgainBtn">NY OMGÅNG 🔄</button>
     <button class="big-btn ghost-btn" id="flagDiffBtn">BYTA SVÅRIGHET ◀</button>
     <button class="big-btn ghost-btn" id="flagHomeBtn">HEM 🏠</button>
+  </div>
+</div>
+
+<!-- RHYME GAME -->
+<div id="rim" class="screen">
+  <div class="topbar">
+    <div class="progress" id="rimProgress">FRÅGA 1 AV 10</div>
+    <div class="level-badge" id="rimBadge">⭐ LÄTT</div>
+  </div>
+  <div class="rim-prompt" id="rimPrompt">VAD RIMMAR MED...</div>
+  <div class="rim-word" id="rimWord">KATT?</div>
+  <div class="rim-grid" id="rimAnswers"></div>
+  <div class="feedback" id="rimFeedback"></div>
+  <div class="next-wrap">
+    <button class="big-btn hidden" id="rimNextBtn">NÄSTA FRÅGA ▶</button>
+  </div>
+</div>
+
+<!-- RHYME SUMMARY -->
+<div id="rimSummary" class="screen">
+  <div class="sum-emoji" id="rimSumEmoji">🏆</div>
+  <div class="sum-score" id="rimSumScore">0/10</div>
+  <div class="sum-msg" id="rimSumMsg"></div>
+  <div class="review" id="rimReview"></div>
+  <div class="sum-buttons">
+    <button class="big-btn" id="rimAgainBtn">NY OMGÅNG 🔄</button>
+    <button class="big-btn ghost-btn" id="rimDiffBtn">BYTA SVÅRIGHET ◀</button>
+    <button class="big-btn ghost-btn" id="rimHomeBtn">HEM 🏠</button>
   </div>
 </div>
 
@@ -1061,6 +1113,9 @@ const I18N = {
     flagMode: "FLAGGQUIZ",
     flagSummary: ["ÖVA LITE TILL! 💪", "BRA FÖRSÖK! 🙂", "BRA JOBBAT! 👍", "RIKTIGT BRA! 🌟", "FLAGGMÄSTARE! 🏆"],
     youPicked: "DU VALDE: ",
+    rimMode: "RIMGISSAREN",
+    rimPrompt: "VAD RIMMAR MED...",
+    rimSummary: ["ÖVA LITE TILL! 💪", "BRA FÖRSÖK! 🙂", "BRA JOBBAT! 👍", "RIKTIGT BRA! 🌟", "RIMMÄSTARE! 🏆"],
     subtitle: "VÄLJ SVÅRIGHETSGRAD!",
     levels: { latt: "LÄTT", medel: "MELLAN", svar: "SVÅR" },
     badges: { latt: "⭐ LÄTT", medel: "⭐⭐ MELLAN", svar: "⭐⭐⭐ SVÅR" },
@@ -1088,6 +1143,9 @@ const I18N = {
     flagMode: "FLAG QUIZ",
     flagSummary: ["KEEP PRACTISING! 💪", "GOOD TRY! 🙂", "WELL DONE! 👍", "REALLY GOOD! 🌟", "FLAG MASTER! 🏆"],
     youPicked: "YOU PICKED: ",
+    rimMode: "RHYME GAME",
+    rimPrompt: "WHAT RHYMES WITH...",
+    rimSummary: ["KEEP PRACTISING! 💪", "GOOD TRY! 🙂", "WELL DONE! 👍", "REALLY GOOD! 🌟", "RHYME MASTER! 🏆"],
     subtitle: "CHOOSE DIFFICULTY!",
     levels: { latt: "EASY", medel: "MEDIUM", svar: "HARD" },
     badges: { latt: "⭐ EASY", medel: "⭐⭐ MEDIUM", svar: "⭐⭐⭐ HARD" },
@@ -1738,6 +1796,266 @@ function showFlagSummary() {
   }
 }
 
+/* ============ RHYME GAME ============ */
+/* Each question: { word, answers:[correct, d1, d2, d3] } — correct is index 0,
+   options are shuffled at round build so position varies. Rhymes are language-
+   specific so Swedish and English have separate pools. */
+const RIM_SV = {
+  easy: [
+    { word: "KATT", answers: ["NATT", "HUND", "FISK", "STOL"] },
+    { word: "SOL", answers: ["STOL", "MÅNE", "HUS", "BIL"] },
+    { word: "HUS", answers: ["MUS", "KATT", "BOLL", "SKO"] },
+    { word: "BOLL", answers: ["TROLL", "HATT", "SOL", "FISK"] },
+    { word: "BIL", answers: ["PIL", "BÅT", "HUND", "TÅG"] },
+    { word: "HAND", answers: ["BAND", "FOT", "ÖGA", "ARM"] },
+    { word: "MUS", answers: ["HUS", "RÅTTA", "OST", "BUR"] },
+    { word: "TÅG", answers: ["SÅG", "BIL", "BÅT", "FLYG"] },
+    { word: "SKO", answers: ["KO", "FOT", "STRUMPA", "HATT"] },
+    { word: "HATT", answers: ["KATT", "MÖSSA", "SKO", "JACKA"] },
+    { word: "NÄSA", answers: ["LÄSA", "MUN", "ÖRA", "ÖGA"] },
+    { word: "FOT", answers: ["ROT", "HAND", "BEN", "TÅ"] },
+    { word: "RÖD", answers: ["BRÖD", "BLÅ", "GUL", "GRÖN"] },
+    { word: "BLÅ", answers: ["STRÅ", "RÖD", "GUL", "SVART"] },
+    { word: "SNÖ", answers: ["FRÖ", "REGN", "IS", "SOL"] },
+    { word: "FISK", answers: ["DISK", "HAV", "SJÖ", "BÅT"] },
+    { word: "BJÖRN", answers: ["HÖRN", "VARG", "RÄV", "ÄLG"] },
+    { word: "RING", answers: ["SPRING", "KLOCKA", "GULD", "FINGER"] },
+    { word: "DÖRR", answers: ["FÖRR", "FÖNSTER", "VÄGG", "TAK"] },
+    { word: "BARN", answers: ["GARN", "MAMMA", "PAPPA", "LEK"] }
+  ],
+  medium: [
+    { word: "BLOMMA", answers: ["KOMMA", "TRÄDGÅRD", "DOFT", "ROS"] },
+    { word: "SKOLA", answers: ["COLA", "LÄRARE", "KLASS", "RAST"] },
+    { word: "STÄMMA", answers: ["KLÄMMA", "RÖST", "SJUNGA", "LÅT"] },
+    { word: "FLASKA", answers: ["MASKA", "VATTEN", "GLAS", "DRICKA"] },
+    { word: "KLOCKA", answers: ["BOCKA", "TID", "VISARE", "RINGA"] },
+    { word: "STJÄRNA", answers: ["HJÄRNA", "HIMMEL", "NATT", "RYMD"] },
+    { word: "FÖNSTER", answers: ["MÖNSTER", "GLAS", "RUTA", "DÖRR"] },
+    { word: "KANIN", answers: ["BENSIN", "MOROT", "ÖRON", "HOPPA"] },
+    { word: "POTATIS", answers: ["GRATIS", "MORÖTTER", "MAT", "KOKA"] },
+    { word: "GITARR", answers: ["BARR", "MUSIK", "SPELA", "LJUD"] },
+    { word: "TELEFON", answers: ["MIKROFON", "RINGA", "PRATA", "NUMMER"] },
+    { word: "SOMMAR", answers: ["BLOMMAR", "VINTER", "SOL", "BAD"] },
+    { word: "VINTER", answers: ["PRINTER", "SNÖ", "KALL", "JUL"] },
+    { word: "CYKEL", answers: ["NYCKEL", "HJUL", "TRAMPA", "VÄG"] },
+    { word: "TRÖJA", answers: ["NÖJA", "BYXOR", "VARM", "STICKA"] },
+    { word: "BANAN", answers: ["ORKAN", "GUL", "FRUKT", "ÄTA"] },
+    { word: "PRESENT", answers: ["STUDENT", "PAKET", "KLAPP", "GE"] },
+    { word: "KOSSA", answers: ["MOSSA", "MJÖLK", "BONDE", "GRÄS"] },
+    { word: "SPINDEL", answers: ["SVINDEL", "NÄT", "BEN", "KRYP"] },
+    { word: "KAFFE", answers: ["GIRAFFE", "KOPP", "DRICKA", "VARM"] }
+  ],
+  hard: [
+    { word: "CHOKLAD", answers: ["MARMELAD", "GODIS", "SÖT", "BRUN"] },
+    { word: "ELEFANT", answers: ["DIAMANT", "SNABEL", "STOR", "GRÅ"] },
+    { word: "BIBLIOTEK", answers: ["APOTEK", "BÖCKER", "LÅNA", "LÄSA"] },
+    { word: "KROKODIL", answers: ["TEXTIL", "GÄDDA", "FARLIG", "GRÖN"] },
+    { word: "KAPTEN", answers: ["IGEN", "BÅT", "HAV", "SJÖMAN"] },
+    { word: "TELEVISION", answers: ["STATION", "PROGRAM", "SKÄRM", "TITTA"] },
+    { word: "PIRAT", answers: ["AKROBAT", "SKEPP", "SKATT", "SVÄRD"] },
+    { word: "MASKIN", answers: ["VITAMIN", "MOTOR", "BYGGA", "STARK"] },
+    { word: "KOMPIS", answers: ["NOTIS", "VÄN", "LEKA", "KUL"] },
+    { word: "FANTASI", answers: ["MELODI", "DRÖM", "SAGA", "TANKE"] },
+    { word: "PRESIDENT", answers: ["KONTINENT", "LAND", "MAKT", "VAL"] },
+    { word: "TANGENT", answers: ["MOMENT", "PIANO", "TRYCK", "TON"] },
+    { word: "POLIS", answers: ["PARADIS", "TJUV", "BIL", "LAG"] },
+    { word: "TRAKTOR", answers: ["DOKTOR", "BONDE", "ÅKER", "KÖRA"] },
+    { word: "BALLONG", answers: ["PINGPONG", "LUFT", "FLYGA", "FEST"] },
+    { word: "INSTRUMENT", answers: ["CEMENT", "MUSIK", "SPELA", "TON"] },
+    { word: "KARAMELL", answers: ["MODELL", "GODIS", "SÖT", "ÄTA"] },
+    { word: "PINGVIN", answers: ["MANDARIN", "IS", "FÅGEL", "KALL"] },
+    { word: "SEMESTER", answers: ["ORKESTER", "RESA", "SOL", "STRAND"] },
+    { word: "KALKON", answers: ["SAXOFON", "FÅGEL", "JUL", "MAT"] }
+  ]
+};
+const RIM_EN = {
+  easy: [
+    { word: "CAT", answers: ["HAT", "DOG", "SUN", "BED"] },
+    { word: "DOG", answers: ["FROG", "CAT", "BIRD", "FISH"] },
+    { word: "SUN", answers: ["BUN", "MOON", "STAR", "SKY"] },
+    { word: "CAR", answers: ["STAR", "BUS", "BOAT", "BIKE"] },
+    { word: "TREE", answers: ["BEE", "LEAF", "ROOT", "WOOD"] },
+    { word: "HOUSE", answers: ["MOUSE", "DOOR", "ROOF", "WALL"] },
+    { word: "BALL", answers: ["WALL", "GAME", "KICK", "NET"] },
+    { word: "FISH", answers: ["DISH", "SEA", "NET", "BOAT"] },
+    { word: "BEAR", answers: ["CHAIR", "WOLF", "FOX", "DEER"] },
+    { word: "SNAKE", answers: ["CAKE", "LIZARD", "GRASS", "BITE"] },
+    { word: "RING", answers: ["KING", "GOLD", "BELL", "HAND"] },
+    { word: "STAR", answers: ["JAR", "MOON", "SKY", "NIGHT"] },
+    { word: "BOAT", answers: ["COAT", "SHIP", "SEA", "SAIL"] },
+    { word: "MOON", answers: ["SPOON", "STAR", "NIGHT", "DARK"] },
+    { word: "BEE", answers: ["KEY", "HONEY", "WING", "BUZZ"] },
+    { word: "FROG", answers: ["LOG", "POND", "JUMP", "GREEN"] },
+    { word: "DUCK", answers: ["TRUCK", "POND", "SWIM", "BIRD"] },
+    { word: "RAIN", answers: ["TRAIN", "CLOUD", "WET", "SKY"] },
+    { word: "BOOK", answers: ["COOK", "READ", "PAGE", "WORD"] },
+    { word: "NOSE", answers: ["ROSE", "FACE", "SMELL", "EYE"] }
+  ],
+  medium: [
+    { word: "FLOWER", answers: ["SHOWER", "GARDEN", "PETAL", "BLOOM"] },
+    { word: "SCHOOL", answers: ["POOL", "TEACHER", "CLASS", "BOOK"] },
+    { word: "YELLOW", answers: ["PILLOW", "COLOUR", "BRIGHT", "SUN"] },
+    { word: "WINTER", answers: ["PRINTER", "SNOW", "COLD", "ICE"] },
+    { word: "SUMMER", answers: ["DRUMMER", "SUN", "BEACH", "WARM"] },
+    { word: "MONKEY", answers: ["DONKEY", "BANANA", "JUNGLE", "TREE"] },
+    { word: "RABBIT", answers: ["HABIT", "CARROT", "HOP", "EARS"] },
+    { word: "PENCIL", answers: ["STENCIL", "WRITE", "DRAW", "PAPER"] },
+    { word: "CANDLE", answers: ["HANDLE", "FLAME", "WAX", "LIGHT"] },
+    { word: "BUTTON", answers: ["MUTTON", "SHIRT", "PRESS", "COAT"] },
+    { word: "GUITAR", answers: ["STAR", "MUSIC", "PLAY", "SOUND"] },
+    { word: "PILLOW", answers: ["WILLOW", "SLEEP", "BED", "SOFT"] },
+    { word: "DRAGON", answers: ["WAGON", "FIRE", "FLY", "SCALE"] },
+    { word: "ROCKET", answers: ["POCKET", "SPACE", "FLY", "FAST"] },
+    { word: "JACKET", answers: ["RACKET", "COAT", "WARM", "ZIP"] },
+    { word: "NUMBER", answers: ["CUCUMBER", "COUNT", "MATH", "DIGIT"] },
+    { word: "SPIDER", answers: ["CIDER", "WEB", "LEGS", "BUG"] },
+    { word: "BANANA", answers: ["BANDANA", "FRUIT", "YELLOW", "PEEL"] },
+    { word: "FINGER", answers: ["SINGER", "HAND", "NAIL", "POINT"] },
+    { word: "KITTEN", answers: ["MITTEN", "CAT", "SOFT", "PURR"] }
+  ],
+  hard: [
+    { word: "TELEPHONE", answers: ["MICROPHONE", "CALL", "RING", "NUMBER"] },
+    { word: "COMPUTER", answers: ["SCOOTER", "SCREEN", "TYPE", "MOUSE"] },
+    { word: "UMBRELLA", answers: ["CINDERELLA", "RAIN", "WET", "COVER"] },
+    { word: "POTATO", answers: ["TOMATO", "VEGETABLE", "MASH", "COOK"] },
+    { word: "CROCODILE", answers: ["REPTILE", "RIVER", "TEETH", "GREEN"] },
+    { word: "BUTTERFLY", answers: ["LULLABY", "WINGS", "FLOWER", "FLUTTER"] },
+    { word: "KANGAROO", answers: ["COCKATOO", "HOP", "POUCH", "JUMP"] },
+    { word: "INVENTION", answers: ["ATTENTION", "IDEA", "CREATE", "NEW"] },
+    { word: "CALCULATOR", answers: ["ALLIGATOR", "MATH", "NUMBER", "ADD"] },
+    { word: "MAGICIAN", answers: ["MUSICIAN", "TRICK", "MAGIC", "WAND"] },
+    { word: "REMEMBER", answers: ["SEPTEMBER", "FORGET", "MIND", "THINK"] },
+    { word: "FANTASTIC", answers: ["ELASTIC", "GREAT", "AMAZING", "WOW"] },
+    { word: "DELICIOUS", answers: ["SUSPICIOUS", "TASTY", "YUMMY", "FOOD"] },
+    { word: "TELESCOPE", answers: ["ENVELOPE", "STARS", "LOOK", "SPACE"] },
+    { word: "BICYCLE", answers: ["ICICLE", "WHEEL", "PEDAL", "RIDE"] },
+    { word: "TORNADO", answers: ["AVOCADO", "STORM", "WIND", "SPIN"] },
+    { word: "CREATOR", answers: ["SPECTATOR", "MAKER", "BUILD", "ART"] },
+    { word: "SUBMARINE", answers: ["TANGERINE", "OCEAN", "DIVE", "DEEP"] },
+    { word: "PARACHUTE", answers: ["SUBSTITUTE", "JUMP", "FALL", "SKY"] },
+    { word: "TELEVISION", answers: ["DECISION", "SCREEN", "WATCH", "SHOW"] }
+  ]
+};
+const RIM_POOLS = { sv: RIM_SV, en: RIM_EN };
+const RIM_DIFF = { latt: "easy", medel: "medium", svar: "hard" };
+
+let rimLevel = "latt";
+let rimRound = [];      // [{ word, options:[4], correct, chosen }]
+let rimIndex = 0;
+let rimScore = 0;
+let rimAnswered = false;
+
+function rimPool(level) { return RIM_POOLS[lang][RIM_DIFF[level]]; }
+
+function startRim(level) {
+  initAudio();
+  if (!RIM_DIFF[level]) level = "latt";
+  rimLevel = level;
+  document.getElementById("rimBadge").textContent = I18N[lang].badges[level];
+  newRimRound();
+}
+
+function newRimRound() {
+  const pool = rimPool(rimLevel);
+  const picked = shuffle(pool.slice()).slice(0, 10);
+  rimRound = picked.map(q => {
+    const correctText = q.answers[0];
+    const options = shuffle(q.answers.slice());
+    return { word: q.word, options, correct: options.indexOf(correctText), chosen: null };
+  });
+  rimIndex = 0; rimScore = 0;
+  showScreen("rim");
+  renderRim();
+}
+
+function renderRim() {
+  rimAnswered = false;
+  const q = rimRound[rimIndex];
+  document.getElementById("rimProgress").textContent = I18N[lang].mathProgress(rimIndex + 1);
+  document.getElementById("rimPrompt").textContent = I18N[lang].rimPrompt;
+  document.getElementById("rimWord").textContent = q.word + "?";
+
+  const grid = document.getElementById("rimAnswers");
+  grid.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "rim-answer";
+    btn.textContent = opt;
+    btn.addEventListener("click", () => chooseRim(i, btn));
+    grid.appendChild(btn);
+  });
+
+  const fb = document.getElementById("rimFeedback");
+  fb.textContent = ""; fb.className = "feedback";
+  document.getElementById("rimNextBtn").classList.add("hidden");
+}
+
+function chooseRim(chosen, btn) {
+  if (rimAnswered) return;
+  rimAnswered = true;
+  const q = rimRound[rimIndex];
+  q.chosen = chosen;
+
+  document.querySelectorAll("#rimAnswers .rim-answer").forEach((b, i) => {
+    b.classList.add("locked");
+    if (i === q.correct) b.classList.add("correct");
+    else if (i === chosen) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  const t = I18N[lang];
+  const fb = document.getElementById("rimFeedback");
+  if (chosen === q.correct) {
+    rimScore++;
+    fb.textContent = t.praise[(Math.random() * t.praise.length) | 0];
+    fb.className = "feedback good";
+    playCorrect();
+    launchConfetti(80);
+  } else {
+    fb.textContent = t.wrong;
+    fb.className = "feedback bad";
+    playWrong();
+  }
+  const nb = document.getElementById("rimNextBtn");
+  nb.textContent = rimIndex < 9 ? t.nextQ : t.seeResult;
+  nb.classList.remove("hidden");
+}
+
+function nextRim() {
+  rimIndex++;
+  if (rimIndex < 10) renderRim();
+  else showRimSummary();
+}
+
+function showRimSummary() {
+  showScreen("rimSummary");
+  const t = I18N[lang];
+  document.getElementById("rimSumScore").textContent = rimScore + "/10";
+
+  const idx = rimScore <= 3 ? 0 : rimScore <= 5 ? 1 : rimScore <= 7 ? 2 : rimScore <= 9 ? 3 : 4;
+  document.getElementById("rimSumEmoji").textContent = SUMMARY_EMOJI[idx];
+  document.getElementById("rimSumMsg").textContent = t.rimSummary[idx];
+
+  const review = document.getElementById("rimReview");
+  review.innerHTML = "";
+  rimRound.forEach(q => {
+    const ok = q.chosen === q.correct;
+    const div = document.createElement("div");
+    div.className = "review-item";
+    const detail = ok ? "" :
+      '<div class="ra">' + t.correctLabel + q.options[q.correct] + '</div>';
+    div.innerHTML =
+      '<span class="mark">' + (ok ? "✅" : "❌") + '</span>' +
+      '<div><div class="rq">' + q.word + "?" + '</div>' + detail + '</div>';
+    review.appendChild(div);
+  });
+
+  if (rimScore >= 8) {
+    launchConfetti(180);
+    setTimeout(() => launchConfetti(120), 400);
+  }
+}
+
 /* ============ LANGUAGE ============ */
 function applyLang() {
   const t = I18N[lang];
@@ -1748,10 +2066,11 @@ function applyLang() {
   document.getElementById("quizModeLbl").textContent = t.quizMode;
   document.getElementById("mathModeLbl").textContent = t.mathMode;
   document.getElementById("flagModeLbl").textContent = t.flagMode;
+  document.getElementById("rimModeLbl").textContent = t.rimMode;
   document.getElementById("flagBtn").textContent = t.flag;
   // difficulty select (shared)
   document.getElementById("subtitle").textContent = t.subtitle;
-  document.getElementById("diffTitle").textContent = currentMode === "math" ? t.mathMode : currentMode === "flag" ? t.flagMode : t.quizMode;
+  document.getElementById("diffTitle").textContent = currentMode === "math" ? t.mathMode : currentMode === "flag" ? t.flagMode : currentMode === "rim" ? t.rimMode : t.quizMode;
   document.querySelectorAll(".level-btn").forEach(btn => {
     btn.querySelector(".lbl").textContent = t.levels[btn.dataset.level];
   });
@@ -1768,6 +2087,10 @@ function applyLang() {
   document.getElementById("flagAgainBtn").textContent = t.newRound;
   document.getElementById("flagDiffBtn").textContent = t.changeDiff;
   document.getElementById("flagHomeBtn").textContent = t.home;
+  // rhyme summary buttons
+  document.getElementById("rimAgainBtn").textContent = t.newRound;
+  document.getElementById("rimDiffBtn").textContent = t.changeDiff;
+  document.getElementById("rimHomeBtn").textContent = t.home;
 }
 function toggleLang() {
   lang = (lang === "sv") ? "en" : "sv";
@@ -1778,8 +2101,8 @@ function toggleLang() {
 function goDiff(mode) {
   currentMode = mode;
   const t = I18N[lang];
-  document.getElementById("diffTitle").textContent = mode === "math" ? t.mathMode : mode === "flag" ? t.flagMode : t.quizMode;
-  document.getElementById("diffEmoji").textContent = mode === "math" ? "➕" : mode === "flag" ? "🚩" : "🚶";
+  document.getElementById("diffTitle").textContent = mode === "math" ? t.mathMode : mode === "flag" ? t.flagMode : mode === "rim" ? t.rimMode : t.quizMode;
+  document.getElementById("diffEmoji").textContent = mode === "math" ? "➕" : mode === "flag" ? "🚩" : mode === "rim" ? "🎤" : "🚶";
   showScreen("start");
 }
 function goHome() { stopTimer(); showScreen("home"); }
@@ -1792,6 +2115,7 @@ document.querySelectorAll(".level-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     if (currentMode === "math") startMath(btn.dataset.level);
     else if (currentMode === "flag") startFlag(btn.dataset.level);
+    else if (currentMode === "rim") startRim(btn.dataset.level);
     else startGame(btn.dataset.level);
   });
 });
@@ -1812,6 +2136,11 @@ document.getElementById("flagNextBtn").addEventListener("click", nextFlag);
 document.getElementById("flagAgainBtn").addEventListener("click", newFlagRound);
 document.getElementById("flagDiffBtn").addEventListener("click", () => showScreen("start"));
 document.getElementById("flagHomeBtn").addEventListener("click", goHome);
+// rhyme
+document.getElementById("rimNextBtn").addEventListener("click", nextRim);
+document.getElementById("rimAgainBtn").addEventListener("click", newRimRound);
+document.getElementById("rimDiffBtn").addEventListener("click", () => showScreen("start"));
+document.getElementById("rimHomeBtn").addEventListener("click", goHome);
 
 applyLang();
 
