@@ -176,6 +176,30 @@
   .math-answer.wrong { background: #ff4d5e; color: #fff; box-shadow: 0 6px 0 #c12b3a; }
   .math-answer.dim { opacity: 0.45; }
   .sum-timeouts { font-size: 22px; font-weight: 800; color: #ffd23f; margin-bottom: 18px; }
+
+  /* ---- FLAG SCREEN ---- */
+  #flag, #flagSummary { position: relative; }
+  #flagSummary { align-items: center; text-align: center; }
+  .flag-display {
+    font-size: clamp(120px, 30vw, 200px); line-height: 1;
+    text-align: center; margin: 10px 0 30px;
+    text-shadow: 0 6px 12px rgba(0,0,0,0.3);
+  }
+  .flag-answers { display:flex; flex-direction:column; gap: 16px; max-width: 760px; width: 100%; margin: 0 auto; }
+  .flag-answer {
+    font-family: inherit; text-transform: uppercase;
+    border: none; border-radius: 22px; min-height: 88px;
+    font-size: 30px; font-weight: 800; cursor: pointer;
+    background: linear-gradient(180deg, #ffffff 0%, #d4d8de 100%); color: #5e0710;
+    box-shadow: 0 6px 0 #9aa0a8;
+    transition: transform .08s, box-shadow .08s, background .15s;
+  }
+  .flag-answer:active { transform: translateY(4px); box-shadow: 0 2px 0 #9aa0a8; }
+  .flag-answer.locked { pointer-events: none; }
+  .flag-answer.correct { background: #2ecc71; color: #fff; box-shadow: 0 6px 0 #1e9c54; }
+  .flag-answer.wrong { background: #ff4d5e; color: #fff; box-shadow: 0 6px 0 #c12b3a; }
+  .flag-answer.dim { opacity: 0.45; }
+  .review-item .rflag { font-size: 34px; flex: 0 0 auto; }
 </style>
 </head>
 <body>
@@ -188,6 +212,7 @@
   <div class="levels">
     <button class="big-btn mode-btn" data-mode="quiz"><span class="stars">🚶</span><span class="lbl" id="quizModeLbl">TIPSPROMENAD</span></button>
     <button class="big-btn mode-btn" data-mode="math"><span class="stars">➕</span><span class="lbl" id="mathModeLbl">MATTELEKEN</span></button>
+    <button class="big-btn mode-btn" data-mode="flag"><span class="stars">🚩</span><span class="lbl" id="flagModeLbl">FLAGGQUIZ</span></button>
   </div>
 </div>
 
@@ -257,6 +282,33 @@
     <button class="big-btn" id="mathAgainBtn">NY OMGÅNG 🔄</button>
     <button class="big-btn ghost-btn" id="mathDiffBtn">BYTA SVÅRIGHET ◀</button>
     <button class="big-btn ghost-btn" id="mathHomeBtn">HEM 🏠</button>
+  </div>
+</div>
+
+<!-- FLAG QUIZ -->
+<div id="flag" class="screen">
+  <div class="topbar">
+    <div class="progress" id="flagProgress">FRÅGA 1 AV 10</div>
+    <div class="level-badge" id="flagBadge">⭐ LÄTT</div>
+  </div>
+  <div class="flag-display" id="flagDisplay">🇸🇪</div>
+  <div class="flag-answers" id="flagAnswers"></div>
+  <div class="feedback" id="flagFeedback"></div>
+  <div class="next-wrap">
+    <button class="big-btn hidden" id="flagNextBtn">NÄSTA FRÅGA ▶</button>
+  </div>
+</div>
+
+<!-- FLAG SUMMARY -->
+<div id="flagSummary" class="screen">
+  <div class="sum-emoji" id="flagSumEmoji">🏆</div>
+  <div class="sum-score" id="flagSumScore">0/10</div>
+  <div class="sum-msg" id="flagSumMsg"></div>
+  <div class="review" id="flagReview"></div>
+  <div class="sum-buttons">
+    <button class="big-btn" id="flagAgainBtn">NY OMGÅNG 🔄</button>
+    <button class="big-btn ghost-btn" id="flagDiffBtn">BYTA SVÅRIGHET ◀</button>
+    <button class="big-btn ghost-btn" id="flagHomeBtn">HEM 🏠</button>
   </div>
 </div>
 
@@ -1006,6 +1058,9 @@ const I18N = {
     chooseGame: "VÄLJ SPEL!",
     quizMode: "TIPSPROMENAD",
     mathMode: "MATTELEKEN",
+    flagMode: "FLAGGQUIZ",
+    flagSummary: ["ÖVA LITE TILL! 💪", "BRA FÖRSÖK! 🙂", "BRA JOBBAT! 👍", "RIKTIGT BRA! 🌟", "FLAGGMÄSTARE! 🏆"],
+    youPicked: "DU VALDE: ",
     subtitle: "VÄLJ SVÅRIGHETSGRAD!",
     levels: { latt: "LÄTT", medel: "MELLAN", svar: "SVÅR" },
     badges: { latt: "⭐ LÄTT", medel: "⭐⭐ MELLAN", svar: "⭐⭐⭐ SVÅR" },
@@ -1030,6 +1085,9 @@ const I18N = {
     chooseGame: "CHOOSE A GAME!",
     quizMode: "QUIZ GAME",
     mathMode: "MATH GAME",
+    flagMode: "FLAG QUIZ",
+    flagSummary: ["KEEP PRACTISING! 💪", "GOOD TRY! 🙂", "WELL DONE! 👍", "REALLY GOOD! 🌟", "FLAG MASTER! 🏆"],
+    youPicked: "YOU PICKED: ",
     subtitle: "CHOOSE DIFFICULTY!",
     levels: { latt: "EASY", medel: "MEDIUM", svar: "HARD" },
     badges: { latt: "⭐ EASY", medel: "⭐⭐ MEDIUM", svar: "⭐⭐⭐ HARD" },
@@ -1498,6 +1556,188 @@ function showMathSummary() {
   }
 }
 
+/* ============ FLAG QUIZ ============ */
+const COUNTRIES = [
+  /* --- easy (15 well-known) --- */
+  { flag: "🇸🇪", sv: "SVERIGE", en: "SWEDEN", difficulty: "easy" },
+  { flag: "🇺🇸", sv: "USA", en: "USA", difficulty: "easy" },
+  { flag: "🇯🇵", sv: "JAPAN", en: "JAPAN", difficulty: "easy" },
+  { flag: "🇫🇷", sv: "FRANKRIKE", en: "FRANCE", difficulty: "easy" },
+  { flag: "🇧🇷", sv: "BRASILIEN", en: "BRAZIL", difficulty: "easy" },
+  { flag: "🇩🇪", sv: "TYSKLAND", en: "GERMANY", difficulty: "easy" },
+  { flag: "🇬🇧", sv: "STORBRITANNIEN", en: "UNITED KINGDOM", difficulty: "easy" },
+  { flag: "🇮🇹", sv: "ITALIEN", en: "ITALY", difficulty: "easy" },
+  { flag: "🇪🇸", sv: "SPANIEN", en: "SPAIN", difficulty: "easy" },
+  { flag: "🇳🇴", sv: "NORGE", en: "NORWAY", difficulty: "easy" },
+  { flag: "🇩🇰", sv: "DANMARK", en: "DENMARK", difficulty: "easy" },
+  { flag: "🇫🇮", sv: "FINLAND", en: "FINLAND", difficulty: "easy" },
+  { flag: "🇨🇳", sv: "KINA", en: "CHINA", difficulty: "easy" },
+  { flag: "🇨🇦", sv: "KANADA", en: "CANADA", difficulty: "easy" },
+  { flag: "🇦🇺", sv: "AUSTRALIEN", en: "AUSTRALIA", difficulty: "easy" },
+
+  /* --- medium (15 more: Europe + big global) --- */
+  { flag: "🇳🇱", sv: "NEDERLÄNDERNA", en: "NETHERLANDS", difficulty: "medium" },
+  { flag: "🇧🇪", sv: "BELGIEN", en: "BELGIUM", difficulty: "medium" },
+  { flag: "🇵🇹", sv: "PORTUGAL", en: "PORTUGAL", difficulty: "medium" },
+  { flag: "🇬🇷", sv: "GREKLAND", en: "GREECE", difficulty: "medium" },
+  { flag: "🇵🇱", sv: "POLEN", en: "POLAND", difficulty: "medium" },
+  { flag: "🇮🇪", sv: "IRLAND", en: "IRELAND", difficulty: "medium" },
+  { flag: "🇨🇭", sv: "SCHWEIZ", en: "SWITZERLAND", difficulty: "medium" },
+  { flag: "🇦🇹", sv: "ÖSTERRIKE", en: "AUSTRIA", difficulty: "medium" },
+  { flag: "🇷🇺", sv: "RYSSLAND", en: "RUSSIA", difficulty: "medium" },
+  { flag: "🇮🇳", sv: "INDIEN", en: "INDIA", difficulty: "medium" },
+  { flag: "🇲🇽", sv: "MEXIKO", en: "MEXICO", difficulty: "medium" },
+  { flag: "🇦🇷", sv: "ARGENTINA", en: "ARGENTINA", difficulty: "medium" },
+  { flag: "🇿🇦", sv: "SYDAFRIKA", en: "SOUTH AFRICA", difficulty: "medium" },
+  { flag: "🇪🇬", sv: "EGYPTEN", en: "EGYPT", difficulty: "medium" },
+  { flag: "🇹🇷", sv: "TURKIET", en: "TURKEY", difficulty: "medium" },
+
+  /* --- hard (20 more: less known) --- */
+  { flag: "🇮🇸", sv: "ISLAND", en: "ICELAND", difficulty: "hard" },
+  { flag: "🇭🇺", sv: "UNGERN", en: "HUNGARY", difficulty: "hard" },
+  { flag: "🇨🇿", sv: "TJECKIEN", en: "CZECHIA", difficulty: "hard" },
+  { flag: "🇷🇴", sv: "RUMÄNIEN", en: "ROMANIA", difficulty: "hard" },
+  { flag: "🇺🇦", sv: "UKRAINA", en: "UKRAINE", difficulty: "hard" },
+  { flag: "🇵🇪", sv: "PERU", en: "PERU", difficulty: "hard" },
+  { flag: "🇨🇱", sv: "CHILE", en: "CHILE", difficulty: "hard" },
+  { flag: "🇨🇴", sv: "COLOMBIA", en: "COLOMBIA", difficulty: "hard" },
+  { flag: "🇹🇭", sv: "THAILAND", en: "THAILAND", difficulty: "hard" },
+  { flag: "🇻🇳", sv: "VIETNAM", en: "VIETNAM", difficulty: "hard" },
+  { flag: "🇰🇷", sv: "SYDKOREA", en: "SOUTH KOREA", difficulty: "hard" },
+  { flag: "🇮🇩", sv: "INDONESIEN", en: "INDONESIA", difficulty: "hard" },
+  { flag: "🇳🇬", sv: "NIGERIA", en: "NIGERIA", difficulty: "hard" },
+  { flag: "🇰🇪", sv: "KENYA", en: "KENYA", difficulty: "hard" },
+  { flag: "🇲🇦", sv: "MAROCKO", en: "MOROCCO", difficulty: "hard" },
+  { flag: "🇸🇦", sv: "SAUDIARABIEN", en: "SAUDI ARABIA", difficulty: "hard" },
+  { flag: "🇵🇰", sv: "PAKISTAN", en: "PAKISTAN", difficulty: "hard" },
+  { flag: "🇳🇿", sv: "NYA ZEELAND", en: "NEW ZEALAND", difficulty: "hard" },
+  { flag: "🇭🇷", sv: "KROATIEN", en: "CROATIA", difficulty: "hard" },
+  { flag: "🇸🇬", sv: "SINGAPORE", en: "SINGAPORE", difficulty: "hard" }
+];
+
+let flagLevel = "latt";
+let flagRound = [];     // [{ country, options:[country×4], chosen }]
+let flagIndex = 0;
+let flagScore = 0;
+let flagAnswered = false;
+
+function flagPool(level) {
+  if (level === "latt")  return COUNTRIES.filter(c => c.difficulty === "easy");
+  if (level === "medel") return COUNTRIES.filter(c => c.difficulty !== "hard");
+  return COUNTRIES.slice();   // svar = all 50
+}
+
+function startFlag(level) {
+  initAudio();
+  if (!["latt", "medel", "svar"].includes(level)) level = "latt";
+  flagLevel = level;
+  document.getElementById("flagBadge").textContent = I18N[lang].badges[level];
+  newFlagRound();
+}
+
+function newFlagRound() {
+  const pool = flagPool(flagLevel);
+  const picked = shuffle(pool.slice()).slice(0, 10);
+  flagRound = picked.map(country => {
+    const others = shuffle(pool.filter(c => c !== country).slice()).slice(0, 3);
+    return { country, options: shuffle([country, ...others]), chosen: null };
+  });
+  flagIndex = 0; flagScore = 0;
+  showScreen("flag");
+  renderFlag();
+}
+
+function renderFlag() {
+  flagAnswered = false;
+  const q = flagRound[flagIndex];
+  document.getElementById("flagProgress").textContent = I18N[lang].mathProgress(flagIndex + 1);
+  document.getElementById("flagDisplay").textContent = q.country.flag;
+
+  const cont = document.getElementById("flagAnswers");
+  cont.innerHTML = "";
+  q.options.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "flag-answer";
+    btn.textContent = c[lang];
+    btn.addEventListener("click", () => chooseFlag(c));
+    cont.appendChild(btn);
+  });
+
+  const fb = document.getElementById("flagFeedback");
+  fb.textContent = ""; fb.className = "feedback";
+  document.getElementById("flagNextBtn").classList.add("hidden");
+}
+
+function chooseFlag(country) {
+  if (flagAnswered) return;
+  flagAnswered = true;
+  const q = flagRound[flagIndex];
+  q.chosen = country;
+  const correct = q.country;
+
+  const btns = document.querySelectorAll("#flagAnswers .flag-answer");
+  btns.forEach((b, i) => {
+    const c = q.options[i];
+    b.classList.add("locked");
+    if (c === correct) b.classList.add("correct");
+    else if (c === country) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  const t = I18N[lang];
+  const fb = document.getElementById("flagFeedback");
+  if (country === correct) {
+    flagScore++;
+    fb.textContent = t.praise[(Math.random() * t.praise.length) | 0];
+    fb.className = "feedback good";
+    playCorrect();
+    launchConfetti(80);
+  } else {
+    fb.textContent = t.wrong;
+    fb.className = "feedback bad";
+    playWrong();
+  }
+  const nb = document.getElementById("flagNextBtn");
+  nb.textContent = flagIndex < 9 ? t.nextQ : t.seeResult;
+  nb.classList.remove("hidden");
+}
+
+function nextFlag() {
+  flagIndex++;
+  if (flagIndex < 10) renderFlag();
+  else showFlagSummary();
+}
+
+function showFlagSummary() {
+  showScreen("flagSummary");
+  const t = I18N[lang];
+  document.getElementById("flagSumScore").textContent = flagScore + "/10";
+
+  const idx = flagScore <= 3 ? 0 : flagScore <= 5 ? 1 : flagScore <= 7 ? 2 : flagScore <= 9 ? 3 : 4;
+  document.getElementById("flagSumEmoji").textContent = SUMMARY_EMOJI[idx];
+  document.getElementById("flagSumMsg").textContent = t.flagSummary[idx];
+
+  const review = document.getElementById("flagReview");
+  review.innerHTML = "";
+  flagRound.forEach(q => {
+    const ok = q.chosen === q.country;
+    const div = document.createElement("div");
+    div.className = "review-item";
+    const detail = ok ? "" :
+      '<div class="ra">' + t.youPicked + (q.chosen ? q.chosen[lang] : "?") + '</div>';
+    div.innerHTML =
+      '<span class="mark">' + (ok ? "✅" : "❌") + '</span>' +
+      '<span class="rflag">' + q.country.flag + '</span>' +
+      '<div><div class="rq">' + q.country[lang] + '</div>' + detail + '</div>';
+    review.appendChild(div);
+  });
+
+  if (flagScore >= 8) {
+    launchConfetti(180);
+    setTimeout(() => launchConfetti(120), 400);
+  }
+}
+
 /* ============ LANGUAGE ============ */
 function applyLang() {
   const t = I18N[lang];
@@ -1507,10 +1747,11 @@ function applyLang() {
   document.getElementById("homeTitle").textContent = t.chooseGame;
   document.getElementById("quizModeLbl").textContent = t.quizMode;
   document.getElementById("mathModeLbl").textContent = t.mathMode;
+  document.getElementById("flagModeLbl").textContent = t.flagMode;
   document.getElementById("flagBtn").textContent = t.flag;
   // difficulty select (shared)
   document.getElementById("subtitle").textContent = t.subtitle;
-  document.getElementById("diffTitle").textContent = currentMode === "math" ? t.mathMode : t.quizMode;
+  document.getElementById("diffTitle").textContent = currentMode === "math" ? t.mathMode : currentMode === "flag" ? t.flagMode : t.quizMode;
   document.querySelectorAll(".level-btn").forEach(btn => {
     btn.querySelector(".lbl").textContent = t.levels[btn.dataset.level];
   });
@@ -1523,6 +1764,10 @@ function applyLang() {
   document.getElementById("mathAgainBtn").textContent = t.newRound;
   document.getElementById("mathDiffBtn").textContent = t.changeDiff;
   document.getElementById("mathHomeBtn").textContent = t.home;
+  // flag summary buttons
+  document.getElementById("flagAgainBtn").textContent = t.newRound;
+  document.getElementById("flagDiffBtn").textContent = t.changeDiff;
+  document.getElementById("flagHomeBtn").textContent = t.home;
 }
 function toggleLang() {
   lang = (lang === "sv") ? "en" : "sv";
@@ -1533,8 +1778,8 @@ function toggleLang() {
 function goDiff(mode) {
   currentMode = mode;
   const t = I18N[lang];
-  document.getElementById("diffTitle").textContent = mode === "math" ? t.mathMode : t.quizMode;
-  document.getElementById("diffEmoji").textContent = mode === "math" ? "➕" : "🚶";
+  document.getElementById("diffTitle").textContent = mode === "math" ? t.mathMode : mode === "flag" ? t.flagMode : t.quizMode;
+  document.getElementById("diffEmoji").textContent = mode === "math" ? "➕" : mode === "flag" ? "🚩" : "🚶";
   showScreen("start");
 }
 function goHome() { stopTimer(); showScreen("home"); }
@@ -1546,6 +1791,7 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
 document.querySelectorAll(".level-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     if (currentMode === "math") startMath(btn.dataset.level);
+    else if (currentMode === "flag") startFlag(btn.dataset.level);
     else startGame(btn.dataset.level);
   });
 });
@@ -1561,6 +1807,11 @@ document.getElementById("mathNextBtn").addEventListener("click", nextMath);
 document.getElementById("mathAgainBtn").addEventListener("click", newMathRound);
 document.getElementById("mathDiffBtn").addEventListener("click", () => showScreen("start"));
 document.getElementById("mathHomeBtn").addEventListener("click", goHome);
+// flag
+document.getElementById("flagNextBtn").addEventListener("click", nextFlag);
+document.getElementById("flagAgainBtn").addEventListener("click", newFlagRound);
+document.getElementById("flagDiffBtn").addEventListener("click", () => showScreen("start"));
+document.getElementById("flagHomeBtn").addEventListener("click", goHome);
 
 applyLang();
 
