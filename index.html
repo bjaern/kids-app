@@ -36,7 +36,17 @@
   .screen.active { display: flex; }
 
   /* ---- START SCREEN ---- */
-  #start { justify-content: center; align-items: center; text-align: center; }
+  #start { justify-content: center; align-items: center; text-align: center; position: relative; }
+  .flag-toggle {
+    position: absolute; top: 12px; right: 8px;
+    font-family: inherit; text-transform: uppercase; cursor: pointer;
+    border: 2px solid rgba(255,255,255,0.5); border-radius: 18px;
+    background: rgba(255,255,255,0.18); color: #fff;
+    font-size: 24px; font-weight: 900;
+    padding: 12px 18px; min-height: 56px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .flag-toggle:active { background: rgba(255,255,255,0.35); }
   .logo {
     font-size: 64px; font-weight: 900; letter-spacing: 2px;
     color: #fff; text-shadow: 0 6px 0 rgba(0,0,0,0.18); line-height: 1.05;
@@ -141,12 +151,13 @@
 
 <!-- START -->
 <div id="start" class="screen active">
-  <div class="logo"><span class="emoji">🚶‍♂️🌲</span>TIPSPROMENAD</div>
-  <div class="subtitle">VÄLJ SVÅRIGHETSGRAD!</div>
+  <button class="flag-toggle" id="flagBtn">🇬🇧 EN</button>
+  <div class="logo"><span class="emoji">🚶‍♂️🌲</span><span id="logoText">TIPSPROMENAD</span></div>
+  <div class="subtitle" id="subtitle">VÄLJ SVÅRIGHETSGRAD!</div>
   <div class="levels">
-    <button class="big-btn level-btn" data-level="latt"><span class="stars">⭐</span>LÄTT</button>
-    <button class="big-btn level-btn" data-level="medel"><span class="stars">⭐⭐</span>MEDEL</button>
-    <button class="big-btn level-btn" data-level="svar"><span class="stars">⭐⭐⭐</span>SVÅR</button>
+    <button class="big-btn level-btn" data-level="latt"><span class="stars">⭐</span><span class="lbl">LÄTT</span></button>
+    <button class="big-btn level-btn" data-level="medel"><span class="stars">⭐⭐</span><span class="lbl">MEDEL</span></button>
+    <button class="big-btn level-btn" data-level="svar"><span class="stars">⭐⭐⭐</span><span class="lbl">SVÅR</span></button>
   </div>
 </div>
 
@@ -178,9 +189,9 @@
 </div>
 
 <script>
-/* ============ QUESTION POOLS — 3 nivåer, 100 frågor var, 10 per ämne ============ */
-const POOLS = {};
-POOLS.latt = [
+/* ============ QUESTION POOLS — 2 språk × 3 nivåer, 100 frågor var ============ */
+const POOLS_SV = {};
+POOLS_SV.latt = [
   /* ---- DJUR ---- */
   { q: "VILKET DJUR SÄGER MU?", a: ["KO", "HÖNA", "GRIS"], correct: 0 },
   { q: "VILKET DJUR HAR EN LÅNG SNABEL?", a: ["HÄST", "ELEFANT", "KANIN"], correct: 1 },
@@ -302,7 +313,7 @@ POOLS.latt = [
   { q: "VILKEN FÄRG HAR SNÖ?", a: ["VIT", "SVART", "RÖD"], correct: 0 },
 ];
 
-POOLS.medel = [
+POOLS_SV.medel = [
   /* ---- DJUR ---- */
   { q: "HUR MÅNGA BEN HAR EN SPINDEL?", a: ["SEX", "ÅTTA", "TIO"], correct: 1 },
   { q: "VILKET DJUR BYTER FÄRG FÖR ATT GÖMMA SIG?", a: ["KAMELEONT", "HÄST", "KO"], correct: 0 },
@@ -424,7 +435,7 @@ POOLS.medel = [
   { q: "VAD BLIR 8 PLUS 8?", a: ["14", "16", "18"], correct: 1 },
 ];
 
-POOLS.svar = [
+POOLS_SV.svar = [
   /* ---- DJUR ---- */
   { q: "VAD KALLAS LÄRAN OM DJUR?", a: ["ZOOLOGI", "BOTANIK", "GEOLOGI"], correct: 0 },
   { q: "VILKET ÄR ETT AV VÄRLDENS GIFTIGASTE DJUR?", a: ["PILGIFTSGRODA", "KANIN", "KO"], correct: 0 },
@@ -546,8 +557,417 @@ POOLS.svar = [
   { q: "VILKA ÄR DE TRE PRIMÄRFÄRGERNA?", a: ["RÖD GUL BLÅ", "GRÖN LILA BRUN", "SVART VIT GRÅ"], correct: 0 },
 ];
 
+/* ========================= ENGLISH POOLS ========================= */
+const POOLS_EN = {};
+POOLS_EN.latt = [
+  /* ---- ANIMALS ---- */
+  { q: "WHICH ANIMAL SAYS MOO?", a: ["COW", "HEN", "PIG"], correct: 0 },
+  { q: "WHICH ANIMAL HAS A LONG TRUNK?", a: ["HORSE", "ELEPHANT", "RABBIT"], correct: 1 },
+  { q: "WHAT IS A BABY DOG CALLED?", a: ["CALF", "CHICK", "PUPPY"], correct: 2 },
+  { q: "WHICH ANIMAL LIVES IN THE WATER?", a: ["FISH", "GIRAFFE", "FOX"], correct: 0 },
+  { q: "WHICH ANIMAL HOPS AND HAS A POUCH?", a: ["BEAR", "KANGAROO", "WOLF"], correct: 1 },
+  { q: "WHICH ANIMAL IS KNOWN FOR BEING SLOW?", a: ["CHEETAH", "HARE", "SNAIL"], correct: 2 },
+  { q: "WHICH ANIMAL HAS STRIPES AND IS BLACK AND WHITE?", a: ["ZEBRA", "LION", "MONKEY"], correct: 0 },
+  { q: "WHAT DOES A RABBIT LIKE TO EAT MOST?", a: ["MEAT", "CARROT", "FISH"], correct: 1 },
+  { q: "WHICH ANIMAL CAN FLY?", a: ["GOAT", "FROG", "BIRD"], correct: 2 },
+  { q: "WHICH ANIMAL IS THE KING OF THE SWEDISH FOREST?", a: ["MOOSE", "TIGER", "DOLPHIN"], correct: 0 },
+
+  /* ---- NATURE / WEATHER ---- */
+  { q: "WHAT FALLS FROM THE SKY WHEN IT RAINS?", a: ["WATER", "CANDY", "ROCKS"], correct: 0 },
+  { q: "WHAT COLOUR IS THE GRASS?", a: ["BLUE", "GREEN", "RED"], correct: 1 },
+  { q: "WHAT IS THE WHITE STUFF THAT FALLS IN WINTER?", a: ["SAND", "RAIN", "SNOW"], correct: 2 },
+  { q: "WHAT SHINES DURING THE DAY?", a: ["THE SUN", "THE MOON", "THE LAMP"], correct: 0 },
+  { q: "WHAT DO YOU SEE IN THE SKY AFTER RAIN AND SUN?", a: ["CLOUD", "RAINBOW", "STAR"], correct: 1 },
+  { q: "WHAT GROWS IN THE FOREST AND IS TALL?", a: ["GRASS", "FLOWER", "TREE"], correct: 2 },
+  { q: "WHICH SEASON IS THE WARMEST?", a: ["SUMMER", "WINTER", "AUTUMN"], correct: 0 },
+  { q: "WHAT BLOWS WHEN IT IS WINDY?", a: ["THE SUN", "THE WIND", "THE SNOW"], correct: 1 },
+  { q: "WHAT DO YOU HEAR WHEN IT THUNDERS?", a: ["MUSIC", "SILENCE", "A RUMBLE"], correct: 2 },
+  { q: "WHERE DO FISH LIVE?", a: ["IN THE SEA", "ON CLOUDS", "IN TREES"], correct: 0 },
+
+  /* ---- SPORT ---- */
+  { q: "IN WHICH SPORT DO YOU KICK A BALL INTO A GOAL?", a: ["FOOTBALL", "SWIMMING", "CHESS"], correct: 0 },
+  { q: "WHAT DO YOU RIDE DOWN THE SLOPE IN WINTER?", a: ["BICYCLE", "SKIS", "BOAT"], correct: 1 },
+  { q: "HOW MANY PLAYERS ARE ON A FOOTBALL TEAM ON THE PITCH?", a: ["FIVE", "TWENTY", "ELEVEN"], correct: 2 },
+  { q: "WHAT DO YOU DO IN A SWIMMING POOL?", a: ["SWIM", "SLEEP", "READ"], correct: 0 },
+  { q: "WHICH SPORT IS PLAYED WITH A RACKET AND A NET?", a: ["BOXING", "TENNIS", "GOLF"], correct: 1 },
+  { q: "WHAT DO YOU WIN IF YOU COME FIRST?", a: ["BALL", "PENALTY", "MEDAL"], correct: 2 },
+  { q: "IN WHICH SPORT DO YOU SKATE ON ICE WITH A STICK?", a: ["ICE HOCKEY", "RIDING", "DANCE"], correct: 0 },
+  { q: "WHAT DO YOU DO WHEN YOU RUN FAST?", a: ["WALK", "SPRINT", "STAND"], correct: 1 },
+  { q: "WHAT DO YOU USE IN BASKETBALL?", a: ["PUCK", "RACKET", "BALL"], correct: 2 },
+  { q: "WHAT DO YOU DO ON A BICYCLE?", a: ["PEDAL", "SWIM", "FLY"], correct: 0 },
+
+  /* ---- FOOD ---- */
+  { q: "WHICH FRUIT IS YELLOW AND CURVED?", a: ["BANANA", "APPLE", "GRAPE"], correct: 0 },
+  { q: "WHAT IS ICE CREAM MADE FROM?", a: ["STONE", "MILK", "SAND"], correct: 1 },
+  { q: "WHICH VEGETABLE IS ORANGE AND LONG?", a: ["CUCUMBER", "TOMATO", "CARROT"], correct: 2 },
+  { q: "WHAT DO YOU DRINK WHEN YOU ARE THIRSTY?", a: ["WATER", "SAND", "CLAY"], correct: 0 },
+  { q: "WHAT DO YOU PUT ON A PIZZA?", a: ["STONES", "CHEESE", "PAPER"], correct: 1 },
+  { q: "WHICH FRUIT IS RED AND ROUND?", a: ["BANANA", "LEMON", "APPLE"], correct: 2 },
+  { q: "WHAT IS BREAD MADE FROM?", a: ["FLOUR", "ONLY SUGAR", "ONLY WATER"], correct: 0 },
+  { q: "WHAT IS SWEET AND EATEN ON SATURDAYS?", a: ["ONION", "CANDY", "SALT"], correct: 1 },
+  { q: "WHERE DOES MILK COME FROM?", a: ["TREE", "STONE", "THE COW"], correct: 2 },
+  { q: "WHICH FOOD IS YELLOW AND COMES FROM HENS?", a: ["EGG", "CARROT", "BANANA"], correct: 0 },
+
+  /* ---- GEOGRAPHY ---- */
+  { q: "WHAT IS THE CAPITAL OF SWEDEN?", a: ["STOCKHOLM", "GOTHENBURG", "MALMÖ"], correct: 0 },
+  { q: "WHICH COUNTRY DO WE LIVE IN?", a: ["NORWAY", "SWEDEN", "DENMARK"], correct: 1 },
+  { q: "WHAT IS A LARGE BODY OF SALT WATER CALLED?", a: ["LAKE", "RIVER", "SEA"], correct: 2 },
+  { q: "WHICH IS SWEDEN'S NEIGHBOUR TO THE WEST?", a: ["NORWAY", "GERMANY", "SPAIN"], correct: 0 },
+  { q: "WHAT IS A VERY HIGH MOUNTAIN CALLED?", a: ["HILL", "MOUNTAIN", "PIT"], correct: 1 },
+  { q: "WHAT DO YOU USE TO FIND YOUR WAY?", a: ["SPOON", "BALL", "MAP"], correct: 2 },
+  { q: "WHICH CONTINENT DO WE LIVE ON?", a: ["EUROPE", "AFRICA", "ASIA"], correct: 0 },
+  { q: "WHAT IS A TOWN BY THE SEA WITH BOATS CALLED?", a: ["FOREST", "HARBOUR", "MEADOW"], correct: 1 },
+  { q: "WHAT IS BIGGEST?", a: ["A CITY", "A HOUSE", "A WORLD"], correct: 2 },
+  { q: "WHAT COLOURS ARE THE SWEDISH FLAG?", a: ["BLUE AND YELLOW", "RED AND WHITE", "GREEN AND BLACK"], correct: 0 },
+
+  /* ---- THE BODY ---- */
+  { q: "HOW MANY FINGERS DO YOU HAVE ON ONE HAND?", a: ["FIVE", "THREE", "TEN"], correct: 0 },
+  { q: "WHAT DO YOU USE TO SEE?", a: ["EARS", "EYES", "NOSE"], correct: 1 },
+  { q: "WHAT DO YOU USE TO WALK?", a: ["ARMS", "EARS", "LEGS"], correct: 2 },
+  { q: "WHAT DO YOU USE TO SMELL?", a: ["THE NOSE", "THE MOUTH", "THE EYE"], correct: 0 },
+  { q: "WHAT DO YOU USE TO HEAR?", a: ["EYES", "EARS", "TOES"], correct: 1 },
+  { q: "WHAT BEATS IN YOUR CHEST AND PUMPS BLOOD?", a: ["THE STOMACH", "THE LUNG", "THE HEART"], correct: 2 },
+  { q: "WHAT DO YOU CHEW YOUR FOOD WITH?", a: ["THE TEETH", "THE HAIR", "THE KNEE"], correct: 0 },
+  { q: "HOW MANY TOES DO YOU HAVE ON ONE FOOT?", a: ["THREE", "FIVE", "EIGHT"], correct: 1 },
+  { q: "WHAT GROWS ON YOUR HEAD?", a: ["GRASS", "FEATHERS", "HAIR"], correct: 2 },
+  { q: "WHAT DO YOU USE TO SPEAK?", a: ["THE MOUTH", "THE FOOT", "THE EAR"], correct: 0 },
+
+  /* ---- VEHICLES ---- */
+  { q: "WHAT DRIVES ON THE ROAD WITH FOUR WHEELS?", a: ["CAR", "BOAT", "AEROPLANE"], correct: 0 },
+  { q: "WHAT FLIES HIGH UP IN THE AIR?", a: ["TRAIN", "AEROPLANE", "BICYCLE"], correct: 1 },
+  { q: "WHAT TRAVELS ON RAILS?", a: ["BUS", "BOAT", "TRAIN"], correct: 2 },
+  { q: "WHAT DO FIREFIGHTERS USE TO PUT OUT FIRES?", a: ["FIRE TRUCK", "TRACTOR", "BOAT"], correct: 0 },
+  { q: "WHAT FLOATS ON THE WATER?", a: ["CAR", "BOAT", "TRAIN"], correct: 1 },
+  { q: "WHAT HAS TWO WHEELS AND YOU PEDAL?", a: ["BUS", "CAR", "BICYCLE"], correct: 2 },
+  { q: "WHAT FLIES WITH ROTOR BLADES ON TOP?", a: ["HELICOPTER", "TRAIN", "BOAT"], correct: 0 },
+  { q: "WHAT DRIVES MANY PASSENGERS TO SCHOOL?", a: ["MOTORCYCLE", "BUS", "BICYCLE"], correct: 1 },
+  { q: "WHAT DO FARMERS USE IN THE FIELD?", a: ["AEROPLANE", "TRAIN", "TRACTOR"], correct: 2 },
+  { q: "WHAT FLIES OUT INTO SPACE?", a: ["ROCKET", "CAR", "BOAT"], correct: 0 },
+
+  /* ---- STORIES / FANTASY ---- */
+  { q: "WHAT IS A FLYING LIZARD THAT BREATHES FIRE CALLED?", a: ["DRAGON", "RABBIT", "FISH"], correct: 0 },
+  { q: "WHO LIVES IN A CASTLE AND WEARS A CROWN?", a: ["FARMER", "PRINCESS", "BAKER"], correct: 1 },
+  { q: "WHAT DOES A UNICORN HAVE ON ITS HEAD?", a: ["EARS", "HAT", "HORN"], correct: 2 },
+  { q: "WHAT DOES A WITCH USE TO FLY?", a: ["BROOM", "CAR", "LADDER"], correct: 0 },
+  { q: "WHAT IS A SMALL CREATURE WITH WINGS AND A WAND CALLED?", a: ["GIANT", "FAIRY", "SNAKE"], correct: 1 },
+  { q: "WHO RESCUES THE PRINCESS IN THE STORY?", a: ["THE DRAGON", "THE WITCH", "THE KNIGHT"], correct: 2 },
+  { q: "WHAT DOES A GHOST DO?", a: ["GOES BOO", "ALWAYS SLEEPS", "COOKS FOOD"], correct: 0 },
+  { q: "WHAT IS A GIANT?", a: ["SOMETHING TINY", "SOMETHING HUGE", "SOMETHING BLUE"], correct: 1 },
+  { q: "WHAT DOES A WIZARD USE?", a: ["HAMMER", "SPADE", "MAGIC WAND"], correct: 2 },
+  { q: "WHERE DO TROLLS LIVE IN THE STORIES?", a: ["IN THE FOREST", "IN THE SEA", "IN SPACE"], correct: 0 },
+
+  /* ---- SPACE ---- */
+  { q: "WHICH PLANET DO WE LIVE ON?", a: ["EARTH", "MARS", "THE SUN"], correct: 0 },
+  { q: "WHAT SHINES IN THE NIGHT SKY AND IS SMALL?", a: ["THE SUN", "A STAR", "A CLOUD"], correct: 1 },
+  { q: "WHAT IS A PERSON WHO TRAVELS TO SPACE CALLED?", a: ["FIREFIGHTER", "BAKER", "ASTRONAUT"], correct: 2 },
+  { q: "WHAT IS ROUND AND SHINES AT NIGHT?", a: ["THE MOON", "THE GRASS", "THE TABLE"], correct: 0 },
+  { q: "WHICH PLANET IS CALLED THE RED PLANET?", a: ["EARTH", "MARS", "THE MOON"], correct: 1 },
+  { q: "WHAT DO YOU TRAVEL INTO SPACE IN?", a: ["BOAT", "BICYCLE", "ROCKET"], correct: 2 },
+  { q: "WHAT IS THE SUN?", a: ["A STAR", "A PLANET", "A MOON"], correct: 0 },
+  { q: "WHAT ARE ALL THE STARS AND PLANETS TOGETHER CALLED?", a: ["THE FOREST", "SPACE", "THE SEA"], correct: 1 },
+  { q: "WHAT HAPPENS TO A BALL IN SPACE?", a: ["IT SINKS", "IT BURNS", "IT FLOATS"], correct: 2 },
+  { q: "WHICH OF THESE IS CLOSEST TO THE SUN?", a: ["EARTH", "THE MOON", "THE STAR"], correct: 0 },
+
+  /* ---- NUMBERS / COLOURS ---- */
+  { q: "WHAT IS 2 PLUS 2?", a: ["4", "5", "3"], correct: 0 },
+  { q: "WHICH COLOUR DO YOU GET FROM BLUE AND YELLOW?", a: ["RED", "GREEN", "PURPLE"], correct: 1 },
+  { q: "HOW MANY IS A DOZEN?", a: ["TEN", "FIVE", "TWELVE"], correct: 2 },
+  { q: "WHICH NUMBER COMES AFTER 9?", a: ["10", "8", "11"], correct: 0 },
+  { q: "WHAT COLOUR IS THE SUN USUALLY IN PICTURES?", a: ["BLUE", "YELLOW", "BLACK"], correct: 1 },
+  { q: "WHAT IS 5 MINUS 2?", a: ["1", "5", "3"], correct: 2 },
+  { q: "WHICH COLOUR DO YOU GET FROM RED AND YELLOW?", a: ["ORANGE", "GREEN", "BLUE"], correct: 0 },
+  { q: "HOW MANY DAYS ARE IN A WEEK?", a: ["FIVE", "SEVEN", "TEN"], correct: 1 },
+  { q: "WHAT IS 3 PLUS 4?", a: ["6", "5", "7"], correct: 2 },
+  { q: "WHAT COLOUR IS SNOW?", a: ["WHITE", "BLACK", "RED"], correct: 0 },
+];
+
+POOLS_EN.medel = [
+  /* ---- ANIMALS ---- */
+  { q: "HOW MANY LEGS DOES A SPIDER HAVE?", a: ["SIX", "EIGHT", "TEN"], correct: 1 },
+  { q: "WHICH ANIMAL CHANGES COLOUR TO HIDE?", a: ["CHAMELEON", "HORSE", "COW"], correct: 0 },
+  { q: "WHICH IS THE FASTEST LAND ANIMAL IN THE WORLD?", a: ["CHEETAH", "ELEPHANT", "SNAIL"], correct: 0 },
+  { q: "WHAT IS AN ANIMAL THAT ONLY EATS PLANTS CALLED?", a: ["CARNIVORE", "HERBIVORE", "OMNIVORE"], correct: 1 },
+  { q: "WHAT DO FISH BREATHE WITH UNDERWATER?", a: ["GILLS", "LUNGS", "NOSE"], correct: 0 },
+  { q: "WHAT IS A GROUP OF WOLVES CALLED?", a: ["PACK", "SCHOOL", "SWARM"], correct: 0 },
+  { q: "WHICH ANIMAL LAYS EGGS BUT IS A MAMMAL?", a: ["PLATYPUS", "DOG", "HORSE"], correct: 0 },
+  { q: "WHAT IS A BABY FROG CALLED?", a: ["CALF", "TADPOLE", "CHICK"], correct: 1 },
+  { q: "WHICH ANIMAL HAS THE LONGEST NECK?", a: ["GIRAFFE", "CAMEL", "ZEBRA"], correct: 0 },
+  { q: "WHAT DOES A HEDGEHOG LIKE TO EAT MOST?", a: ["GRASS", "INSECTS", "FISH"], correct: 1 },
+
+  /* ---- NATURE / WEATHER ---- */
+  { q: "WHAT HAPPENS TO WATER WHEN IT TURNS TO STEAM?", a: ["IT BOILS", "IT FREEZES", "IT MELTS"], correct: 0 },
+  { q: "HOW MANY SEASONS DOES SWEDEN HAVE?", a: ["TWO", "FOUR", "SIX"], correct: 1 },
+  { q: "WHAT DO YOU MEASURE TEMPERATURE WITH?", a: ["RULER", "THERMOMETER", "SCALE"], correct: 1 },
+  { q: "WHAT IS A LONG TIME WITHOUT RAIN CALLED?", a: ["DROUGHT", "STORM", "FLOOD"], correct: 0 },
+  { q: "IN WHICH SEASON DO LEAVES FALL FROM THE TREES?", a: ["SPRING", "AUTUMN", "SUMMER"], correct: 1 },
+  { q: "WHAT IS FORMED BY TINY WATER DROPLETS IN THE SKY?", a: ["CLOUD", "STARS", "MOUNTAINS"], correct: 0 },
+  { q: "WHAT IS FROZEN RAIN IN SMALL BALLS CALLED?", a: ["HAIL", "FOG", "DEW"], correct: 0 },
+  { q: "WHAT IS A LARGE SWIRLING STORM CALLED?", a: ["HURRICANE", "BREEZE", "DRIZZLE"], correct: 0 },
+  { q: "WHAT IS WATER THAT FLOWS TOWARDS THE SEA CALLED?", a: ["RIVER", "LAKE", "POND"], correct: 0 },
+  { q: "WHAT DOES A PLANT NEED TO GROW?", a: ["ONLY DARKNESS", "SUN AND WATER", "ONLY STONE"], correct: 1 },
+
+  /* ---- SPORT ---- */
+  { q: "ABOUT HOW LONG IS A MARATHON?", a: ["1 KM", "42 KM", "100 KM"], correct: 1 },
+  { q: "IN WHICH COUNTRY WERE THE OLYMPIC GAMES INVENTED?", a: ["GREECE", "SWEDEN", "CHINA"], correct: 0 },
+  { q: "HOW MANY RINGS ARE IN THE OLYMPIC SYMBOL?", a: ["THREE", "FIVE", "SEVEN"], correct: 1 },
+  { q: "WHAT IS THREE GOALS BY THE SAME PLAYER IN FOOTBALL CALLED?", a: ["HAT-TRICK", "PENALTY", "CORNER"], correct: 0 },
+  { q: "WHICH SPORT IS PLAYED AT WIMBLEDON?", a: ["TENNIS", "FOOTBALL", "GOLF"], correct: 0 },
+  { q: "HOW MANY PLAYERS DOES AN ICE HOCKEY TEAM HAVE ON THE ICE?", a: ["SIX", "TEN", "ELEVEN"], correct: 0 },
+  { q: "WHAT DO YOU USE IN TABLE TENNIS?", a: ["PADDLE", "STICK", "GLOVE"], correct: 0 },
+  { q: "WHAT IS SWIMMING ON YOUR BACK CALLED?", a: ["BACKSTROKE", "BREASTSTROKE", "CRAWL"], correct: 0 },
+  { q: "IN WHICH SPORT DO YOU DO A SLAM DUNK?", a: ["BASKETBALL", "TENNIS", "GOLF"], correct: 0 },
+  { q: "HOW MANY PERIODS DOES AN ICE HOCKEY GAME HAVE?", a: ["TWO", "THREE", "FOUR"], correct: 1 },
+
+  /* ---- FOOD ---- */
+  { q: "WHICH COUNTRY DOES PIZZA COME FROM?", a: ["ITALY", "JAPAN", "SWEDEN"], correct: 0 },
+  { q: "WHAT IS NEEDED FOR DOUGH TO RISE?", a: ["YEAST", "SALT", "ICE"], correct: 0 },
+  { q: "WHICH VITAMIN IS FOUND A LOT IN ORANGES?", a: ["VITAMIN C", "IRON", "SUGAR"], correct: 0 },
+  { q: "WHAT DOES CREAM BECOME IF YOU WHIP IT FOR A LONG TIME?", a: ["BUTTER", "CHEESE", "MILK"], correct: 0 },
+  { q: "WHICH SPICE IS RED AND HOT?", a: ["CHILLI", "SALT", "SUGAR"], correct: 0 },
+  { q: "WHAT IS JAM MADE FROM?", a: ["BERRIES", "STONE", "SAND"], correct: 0 },
+  { q: "WHICH COUNTRY IS KNOWN FOR SUSHI?", a: ["JAPAN", "ITALY", "NORWAY"], correct: 0 },
+  { q: "WHAT IS FOOD WITH NO MEAT AT ALL CALLED?", a: ["VEGETARIAN", "FRIED", "SWEET"], correct: 0 },
+  { q: "WHICH FRUIT HAS A HARD SHELL AND MILK INSIDE?", a: ["COCONUT", "APPLE", "STRAWBERRY"], correct: 0 },
+  { q: "WHAT IS SOMETIMES USED TO SWEETEN WITHOUT SUGAR?", a: ["HONEY", "SALT", "PEPPER"], correct: 0 },
+
+  /* ---- GEOGRAPHY ---- */
+  { q: "WHAT IS THE CAPITAL OF NORWAY?", a: ["OSLO", "STOCKHOLM", "HELSINKI"], correct: 0 },
+  { q: "WHICH IS THE LARGEST OCEAN IN THE WORLD?", a: ["THE PACIFIC", "THE BALTIC SEA", "THE MEDITERRANEAN"], correct: 0 },
+  { q: "ON WHICH CONTINENT IS EGYPT?", a: ["AFRICA", "EUROPE", "ASIA"], correct: 0 },
+  { q: "WHAT IS THE CAPITAL OF DENMARK?", a: ["COPENHAGEN", "OSLO", "BERLIN"], correct: 0 },
+  { q: "WHICH IS ONE OF THE WORLD'S LONGEST RIVERS?", a: ["THE NILE", "KLARÄLVEN", "THE THAMES"], correct: 0 },
+  { q: "HOW MANY CONTINENTS ARE THERE?", a: ["FIVE", "SEVEN", "TEN"], correct: 1 },
+  { q: "WHICH COUNTRY IS SHAPED LIKE A BOOT?", a: ["ITALY", "FRANCE", "SPAIN"], correct: 0 },
+  { q: "WHAT IS SWEDEN'S HIGHEST MOUNTAIN?", a: ["KEBNEKAISE", "MOUNT EVEREST", "GALDHØPIGGEN"], correct: 0 },
+  { q: "WHICH SEA LIES EAST OF SWEDEN?", a: ["THE BALTIC SEA", "THE ATLANTIC", "THE MEDITERRANEAN"], correct: 0 },
+  { q: "WHAT IS THE CAPITAL OF FINLAND?", a: ["HELSINKI", "OSLO", "RIGA"], correct: 0 },
+
+  /* ---- THE BODY ---- */
+  { q: "WHICH ORGAN PUMPS BLOOD AROUND THE BODY?", a: ["THE HEART", "THE LUNG", "THE STOMACH"], correct: 0 },
+  { q: "WHICH ORGAN DO YOU USE TO BREATHE?", a: ["THE LUNGS", "THE LIVER", "THE STOMACH"], correct: 0 },
+  { q: "HOW MANY LUNGS DO YOU HAVE?", a: ["ONE", "TWO", "THREE"], correct: 1 },
+  { q: "WHAT PROTECTS YOUR BRAIN?", a: ["THE SKULL", "THE RIBS", "THE SKIN"], correct: 0 },
+  { q: "WHAT IS THE HARD STRUCTURE INSIDE THAT SUPPORTS THE BODY?", a: ["THE SKELETON", "MUSCLES", "BLOOD"], correct: 0 },
+  { q: "WHAT DO YOU USE YOUR MUSCLES FOR?", a: ["TO MOVE", "TO SEE", "TO HEAR"], correct: 0 },
+  { q: "WHICH IS THE BODY'S LARGEST ORGAN?", a: ["THE SKIN", "THE HEART", "THE EYE"], correct: 0 },
+  { q: "WHAT IS THE TUBE THAT FOOD GOES DOWN CALLED?", a: ["THE OESOPHAGUS", "THE WINDPIPE", "THE VEIN"], correct: 0 },
+  { q: "WHERE IS THE FOOD YOU EAT DIGESTED?", a: ["IN THE STOMACH", "IN THE BRAIN", "IN THE EAR"], correct: 0 },
+  { q: "WHAT DO YOU USE YOUR TEETH FOR?", a: ["CHEWING", "SEEING", "HEARING"], correct: 0 },
+
+  /* ---- VEHICLES ---- */
+  { q: "WHAT POWERS AN ELECTRIC CAR?", a: ["ELECTRICITY", "PETROL", "COAL"], correct: 0 },
+  { q: "WHAT IS A PERSON WHO DRIVES A TRAIN CALLED?", a: ["TRAIN DRIVER", "PILOT", "CAPTAIN"], correct: 0 },
+  { q: "WHAT IS A PERSON WHO FLIES A PLANE CALLED?", a: ["PILOT", "DRIVER", "SAILOR"], correct: 0 },
+  { q: "WHAT DOES A SAILBOAT USE TO MOVE?", a: ["THE WIND", "A MOTOR", "PEDALS"], correct: 0 },
+  { q: "WHAT IS A BICYCLE WITH A SMALL ENGINE CALLED?", a: ["MOPED", "TRACTOR", "BUS"], correct: 0 },
+  { q: "WHAT IS A VEHICLE THAT TRAVELS UNDERWATER CALLED?", a: ["SUBMARINE", "FERRY", "CANOE"], correct: 0 },
+  { q: "WHAT DOES A PLANE NEED TO TAKE OFF?", a: ["SPEED AND WINGS", "A SAIL", "ONLY WHEELS"], correct: 0 },
+  { q: "WHAT IS A BIG BOAT THAT CARRIES CARS AND PEOPLE CALLED?", a: ["FERRY", "KAYAK", "RAFT"], correct: 0 },
+  { q: "WHICH VEHICLE HAS TRACKS INSTEAD OF WHEELS?", a: ["EXCAVATOR", "BICYCLE", "CAR"], correct: 0 },
+  { q: "WHAT IS A PERSON WHO STEERS A SHIP CALLED?", a: ["CAPTAIN", "PILOT", "BAKER"], correct: 0 },
+
+  /* ---- STORIES / FANTASY ---- */
+  { q: "WHO WROTE THE BOOKS ABOUT PIPPI LONGSTOCKING?", a: ["ASTRID LINDGREN", "H.C. ANDERSEN", "THE BROTHERS GRIMM"], correct: 0 },
+  { q: "WHAT IS THE GIRL WHO FOLLOWED A WHITE RABBIT DOWN A HOLE CALLED?", a: ["ALICE", "CINDERELLA", "SNOW WHITE"], correct: 0 },
+  { q: "HOW MANY DWARFS LIVED WITH SNOW WHITE?", a: ["FIVE", "SEVEN", "TEN"], correct: 1 },
+  { q: "WHAT DID CINDERELLA LOSE ON THE STAIRS?", a: ["A SHOE", "A HAT", "A MITTEN"], correct: 0 },
+  { q: "WHAT DID THE FROG TURN INTO WITH A KISS?", a: ["A PRINCE", "A DRAGON", "A BIRD"], correct: 0 },
+  { q: "WHO IS THE WOODEN PUPPET WHOSE NOSE GREW WHEN HE LIED?", a: ["PINOCCHIO", "PETER PAN", "ALADDIN"], correct: 0 },
+  { q: "WHICH ANIMAL BLEW DOWN THE PIGS' HOUSES?", a: ["THE WOLF", "THE FOX", "THE BEAR"], correct: 0 },
+  { q: "WHO LIVES IN A LAMP AND GRANTS WISHES?", a: ["THE GENIE", "THE WITCH", "THE TROLL"], correct: 0 },
+  { q: "WHAT IS THE BOY WHO NEVER WANTED TO GROW UP CALLED?", a: ["PETER PAN", "HARRY POTTER", "ROBIN HOOD"], correct: 0 },
+  { q: "WHAT DID HANSEL AND GRETEL LEAVE BEHIND IN THE FOREST?", a: ["BREADCRUMBS", "GOLD", "FLOWERS"], correct: 0 },
+
+  /* ---- SPACE ---- */
+  { q: "WHICH PLANET IS THE LARGEST IN OUR SOLAR SYSTEM?", a: ["JUPITER", "EARTH", "MARS"], correct: 0 },
+  { q: "HOW MANY PLANETS ARE IN OUR SOLAR SYSTEM?", a: ["SEVEN", "EIGHT", "TWELVE"], correct: 1 },
+  { q: "WHAT IS A ROCK THAT BURNS AS IT FALLS THROUGH THE AIR CALLED?", a: ["METEOR", "COMET", "MOON"], correct: 0 },
+  { q: "WHICH PLANET HAS LARGE RINGS AROUND IT?", a: ["SATURN", "MARS", "EARTH"], correct: 0 },
+  { q: "WHAT DOES THE MOON ORBIT?", a: ["EARTH", "THE SUN", "MARS"], correct: 0 },
+  { q: "WHAT IS A STAR WITH A TAIL OF ICE AND DUST CALLED?", a: ["COMET", "PLANET", "MOON"], correct: 0 },
+  { q: "WHO WAS FIRST TO WALK ON THE MOON?", a: ["NEIL ARMSTRONG", "PIPPI", "COLUMBUS"], correct: 0 },
+  { q: "WHICH PLANET IS CLOSEST TO THE SUN?", a: ["MERCURY", "EARTH", "SATURN"], correct: 0 },
+  { q: "WHAT IS THE PATH A PLANET TAKES AROUND THE SUN CALLED?", a: ["ORBIT", "TRAIL", "STREET"], correct: 0 },
+  { q: "WHAT IS OUR GALAXY CALLED?", a: ["THE MILKY WAY", "THE RAINBOW", "THE NORTHERN LIGHTS"], correct: 0 },
+
+  /* ---- NUMBERS / COLOURS ---- */
+  { q: "WHAT IS 6 PLUS 7?", a: ["12", "13", "14"], correct: 1 },
+  { q: "WHAT IS 9 MINUS 4?", a: ["3", "5", "6"], correct: 1 },
+  { q: "WHAT IS 3 TIMES 3?", a: ["6", "9", "12"], correct: 1 },
+  { q: "WHICH COLOURS MAKE PURPLE?", a: ["RED AND BLUE", "YELLOW AND GREEN", "BLACK AND WHITE"], correct: 0 },
+  { q: "HOW MANY IS HALF A DOZEN?", a: ["SIX", "TEN", "TWELVE"], correct: 0 },
+  { q: "WHAT IS 10 PLUS 15?", a: ["20", "25", "30"], correct: 1 },
+  { q: "WHICH NUMBER IS EVEN?", a: ["7", "8", "9"], correct: 1 },
+  { q: "WHAT IS 20 DIVIDED BY 2?", a: ["5", "10", "15"], correct: 1 },
+  { q: "HOW MANY SIDES DOES A TRIANGLE HAVE?", a: ["THREE", "FOUR", "FIVE"], correct: 0 },
+  { q: "WHAT IS 8 PLUS 8?", a: ["14", "16", "18"], correct: 1 },
+];
+
+POOLS_EN.svar = [
+  /* ---- ANIMALS ---- */
+  { q: "WHAT IS THE STUDY OF ANIMALS CALLED?", a: ["ZOOLOGY", "BOTANY", "GEOLOGY"], correct: 0 },
+  { q: "WHICH IS ONE OF THE WORLD'S MOST POISONOUS ANIMALS?", a: ["POISON DART FROG", "RABBIT", "COW"], correct: 0 },
+  { q: "HOW MANY HEARTS DOES AN OCTOPUS HAVE?", a: ["ONE", "THREE", "FIVE"], correct: 1 },
+  { q: "WHICH ANIMAL HAS THE STRONGEST BITE?", a: ["CROCODILE", "RABBIT", "SHEEP"], correct: 0 },
+  { q: "WHAT ARE ANIMALS WITHOUT A BACKBONE CALLED?", a: ["INVERTEBRATES", "MAMMALS", "BIRDS"], correct: 0 },
+  { q: "WHICH MAMMAL CAN ACTUALLY FLY?", a: ["BAT", "SQUIRREL", "RAT"], correct: 0 },
+  { q: "ABOUT HOW LONG CAN A BLUE WHALE GROW?", a: ["3 METRES", "30 METRES", "100 METRES"], correct: 1 },
+  { q: "WHAT IS IT CALLED WHEN A LARVA BECOMES A BUTTERFLY?", a: ["METAMORPHOSIS", "PHOTOSYNTHESIS", "EVOLUTION"], correct: 0 },
+  { q: "WHICH ANIMAL HAS THE MOST LEGS?", a: ["MILLIPEDE", "SPIDER", "ANT"], correct: 0 },
+  { q: "WHAT IS AN ANIMAL THAT IS ACTIVE AT NIGHT CALLED?", a: ["NOCTURNAL", "DIURNAL", "HIBERNATING"], correct: 0 },
+
+  /* ---- NATURE / WEATHER ---- */
+  { q: "WHAT IS IT CALLED WHEN PLANTS MAKE ENERGY FROM SUNLIGHT?", a: ["PHOTOSYNTHESIS", "RESPIRATION", "EVAPORATION"], correct: 0 },
+  { q: "WHAT IS WATER'S JOURNEY FROM SEA TO CLOUD TO RAIN CALLED?", a: ["THE WATER CYCLE", "WIND POWER", "EARTHQUAKE"], correct: 0 },
+  { q: "WHICH GAS DO PLANTS BREATHE IN?", a: ["CARBON DIOXIDE", "OXYGEN", "HELIUM"], correct: 0 },
+  { q: "WHAT DO YOU MEASURE AIR PRESSURE WITH?", a: ["BAROMETER", "THERMOMETER", "RULER"], correct: 0 },
+  { q: "WHAT IS GLOWING ROCK THAT FLOWS FROM A VOLCANO CALLED?", a: ["LAVA", "ICE", "SAND"], correct: 0 },
+  { q: "ON WHICH HEMISPHERE IS IT WINTER WHEN WE HAVE SUMMER?", a: ["THE SOUTHERN", "THE NORTHERN", "THE EASTERN"], correct: 0 },
+  { q: "WHAT CAUSES A BOLT OF LIGHTNING?", a: ["ELECTRICITY", "WIND", "ONLY RAIN"], correct: 0 },
+  { q: "WHAT IS A DRY AREA WITH LOTS OF SAND CALLED?", a: ["DESERT", "RAINFOREST", "TUNDRA"], correct: 0 },
+  { q: "WHICH GAS DO HUMANS BREATHE IN TO LIVE?", a: ["OXYGEN", "HELIUM", "CARBON DIOXIDE"], correct: 0 },
+  { q: "WHAT IS A DEVICE THAT SHOWS WIND DIRECTION CALLED?", a: ["WEATHER VANE", "THERMOMETER", "CLOCK"], correct: 0 },
+
+  /* ---- SPORT ---- */
+  { q: "HOW OFTEN ARE THE SUMMER OLYMPICS HELD?", a: ["EVERY YEAR", "EVERY FOUR YEARS", "EVERY TEN YEARS"], correct: 1 },
+  { q: "WHICH COUNTRY HAS WON THE MOST FOOTBALL WORLD CUPS?", a: ["BRAZIL", "SWEDEN", "NORWAY"], correct: 0 },
+  { q: "HOW MANY SQUARES DOES A CHESSBOARD HAVE?", a: ["32", "64", "100"], correct: 1 },
+  { q: "IN WHICH SPORT IS THE TERM BIRDIE USED?", a: ["GOLF", "TENNIS", "BOXING"], correct: 0 },
+  { q: "HOW LONG IS THE REGULAR TIME IN A FOOTBALL MATCH?", a: ["60 MIN", "90 MIN", "120 MIN"], correct: 1 },
+  { q: "WHICH COUNTRY DOES THE MARTIAL ART JUDO COME FROM?", a: ["JAPAN", "BRAZIL", "ITALY"], correct: 0 },
+  { q: "HOW MANY PLAYERS DOES A BASKETBALL TEAM HAVE ON THE COURT?", a: ["FIVE", "SIX", "SEVEN"], correct: 0 },
+  { q: "WHERE WERE THE FIRST MODERN OLYMPICS HELD IN 1896?", a: ["ATHENS", "PARIS", "LONDON"], correct: 0 },
+  { q: "WHAT IS HITTING THE BALL INTO THE HOLE IN ONE SHOT IN GOLF CALLED?", a: ["HOLE IN ONE", "STRIKE", "HOME RUN"], correct: 0 },
+  { q: "ABOUT HOW HIGH IS A BASKETBALL HOOP?", a: ["1 METRE", "3 METRES", "10 METRES"], correct: 1 },
+
+  /* ---- FOOD ---- */
+  { q: "WHICH NUTRIENT GIVES THE MOST ENERGY?", a: ["FAT", "WATER", "SALT"], correct: 0 },
+  { q: "WHAT IS YEAST?", a: ["A FUNGUS", "A STONE", "A SALT"], correct: 0 },
+  { q: "WHICH ACID IS FOUND IN LEMONS?", a: ["CITRIC ACID", "HYDROCHLORIC ACID", "SULFURIC ACID"], correct: 0 },
+  { q: "WHAT IS A DIET WITH NO ANIMAL PRODUCTS AT ALL CALLED?", a: ["VEGAN", "VEGETARIAN", "GLUTEN-FREE"], correct: 0 },
+  { q: "WHICH COUNTRY GROWS THE MOST RICE IN THE WORLD?", a: ["CHINA", "ITALY", "SWEDEN"], correct: 0 },
+  { q: "WHICH GAS IS PRODUCED WHEN YEAST CONVERTS SUGAR?", a: ["CARBON DIOXIDE", "OXYGEN", "SALT"], correct: 0 },
+  { q: "WHICH SPICE IS THE MOST EXPENSIVE IN THE WORLD?", a: ["SAFFRON", "SALT", "PEPPER"], correct: 0 },
+  { q: "WHICH BEAN IS CHOCOLATE MADE FROM?", a: ["THE COCOA BEAN", "THE SOY BEAN", "THE COFFEE BEAN"], correct: 0 },
+  { q: "WHAT IS A MUSHROOM THAT IS DANGEROUS TO EAT CALLED?", a: ["POISONOUS MUSHROOM", "EDIBLE MUSHROOM", "YEAST"], correct: 0 },
+  { q: "WHICH VITAMIN DOES THE BODY MAKE FROM SUNLIGHT?", a: ["VITAMIN D", "VITAMIN C", "IRON"], correct: 0 },
+
+  /* ---- GEOGRAPHY ---- */
+  { q: "WHICH IS THE LARGEST COUNTRY IN THE WORLD BY AREA?", a: ["RUSSIA", "CHINA", "CANADA"], correct: 0 },
+  { q: "WHICH IS THE HIGHEST MOUNTAIN PEAK IN THE WORLD?", a: ["MOUNT EVEREST", "KEBNEKAISE", "KILIMANJARO"], correct: 0 },
+  { q: "WHAT IS THE CAPITAL OF GERMANY?", a: ["BERLIN", "MUNICH", "HAMBURG"], correct: 0 },
+  { q: "WHICH IS THE LARGEST HOT DESERT IN THE WORLD?", a: ["THE SAHARA", "THE GOBI", "THE ATACAMA"], correct: 0 },
+  { q: "THROUGH WHICH COUNTRY DOES THE AMAZON RIVER MOSTLY FLOW?", a: ["BRAZIL", "EGYPT", "CHINA"], correct: 0 },
+  { q: "WHAT IS THE IMAGINARY LINE AROUND THE MIDDLE OF THE EARTH CALLED?", a: ["THE EQUATOR", "THE NORTH POLE", "THE MERIDIAN"], correct: 0 },
+  { q: "ABOUT HOW MANY COUNTRIES ARE THERE IN THE WORLD?", a: ["50", "200", "1000"], correct: 1 },
+  { q: "WHICH IS THE SMALLEST COUNTRY IN THE WORLD?", a: ["VATICAN CITY", "MONACO", "MALTA"], correct: 0 },
+  { q: "WHAT IS THE CAPITAL OF THE USA?", a: ["WASHINGTON D.C.", "NEW YORK", "LOS ANGELES"], correct: 0 },
+  { q: "WHICH OCEAN IS THE LARGEST?", a: ["THE PACIFIC", "THE ATLANTIC", "THE INDIAN OCEAN"], correct: 0 },
+
+  /* ---- THE BODY ---- */
+  { q: "ABOUT HOW MANY BONES DOES AN ADULT HUMAN HAVE?", a: ["106", "206", "506"], correct: 1 },
+  { q: "WHICH ORGAN CLEANS THE BLOOD?", a: ["THE KIDNEYS", "THE HEART", "THE LUNG"], correct: 0 },
+  { q: "WHAT IS THE SUBSTANCE IN BLOOD THAT CARRIES OXYGEN CALLED?", a: ["HAEMOGLOBIN", "CALCIUM", "INSULIN"], correct: 0 },
+  { q: "HOW MANY CHAMBERS DOES THE HEART HAVE?", a: ["TWO", "FOUR", "SIX"], correct: 1 },
+  { q: "WHICH IS THE SMALLEST BONE IN THE BODY (IN THE EAR)?", a: ["THE STIRRUP", "THE THIGH BONE", "THE RIB"], correct: 0 },
+  { q: "WHAT CONTROLS ALL THE BODY'S FUNCTIONS?", a: ["THE BRAIN", "THE STOMACH", "THE SKIN"], correct: 0 },
+  { q: "WHICH ORGAN PRODUCES BILE?", a: ["THE LIVER", "THE HEART", "THE LUNG"], correct: 0 },
+  { q: "ABOUT HOW LONG IS THE SMALL INTESTINE?", a: ["1 METRE", "6 METRES", "20 METRES"], correct: 1 },
+  { q: "WHAT IS THE LIQUID THAT TRANSPORTS OXYGEN IN THE BODY CALLED?", a: ["BLOOD", "BONES", "SKIN"], correct: 0 },
+  { q: "WHICH SENSE IS LOCATED IN THE TONGUE?", a: ["TASTE", "SIGHT", "HEARING"], correct: 0 },
+
+  /* ---- VEHICLES ---- */
+  { q: "WHICH FUEL DOES A ROCKET OFTEN USE?", a: ["LIQUID FUEL", "COAL", "WOOD"], correct: 0 },
+  { q: "WHO BUILT THE FIRST CAR WITH A PETROL ENGINE?", a: ["KARL BENZ", "HENRY FORD", "ELON MUSK"], correct: 0 },
+  { q: "WHAT IS THE FAST PASSENGER PLANE THAT IS NOW RETIRED CALLED?", a: ["CONCORDE", "BOEING 747", "CESSNA"], correct: 0 },
+  { q: "WHAT MEASURES HOW FAST A VEHICLE IS GOING?", a: ["SPEEDOMETER", "THERMOMETER", "COMPASS"], correct: 0 },
+  { q: "WHAT IS A TRAIN THAT FLOATS USING MAGNETS CALLED?", a: ["MAGLEV", "STEAM TRAIN", "TRAM"], correct: 0 },
+  { q: "WHAT POWERS A STEAM TRAIN?", a: ["STEAM FROM WATER", "ELECTRICITY", "A SAIL"], correct: 0 },
+  { q: "WHAT DOES A SUBMARINE USE TO SEE ABOVE THE SURFACE?", a: ["PERISCOPE", "SAIL", "WING"], correct: 0 },
+  { q: "WHICH VEHICLE IS USED TO EXPLORE MARS?", a: ["ROVER", "FERRY", "TRAM"], correct: 0 },
+  { q: "WHY DOES A HEAVY SHIP FLOAT?", a: ["IT PUSHES WATER ASIDE", "IT IS MAGNETIC", "IT IS WARM"], correct: 0 },
+  { q: "WHAT IS THE FORCE THAT LIFTS A PLANE CALLED?", a: ["LIFT", "GRAVITY", "FRICTION"], correct: 0 },
+
+  /* ---- STORIES / FANTASY ---- */
+  { q: "WHO WROTE THE STORY OF THE UGLY DUCKLING?", a: ["H.C. ANDERSEN", "ASTRID LINDGREN", "J.K. ROWLING"], correct: 0 },
+  { q: "WHAT IS THE WIZARDING SCHOOL IN HARRY POTTER CALLED?", a: ["HOGWARTS", "NARNIA", "MORDOR"], correct: 0 },
+  { q: "IN WHICH STORY ARE THERE HOBBITS AND A RING?", a: ["THE LORD OF THE RINGS", "PIPPI", "BAMSE"], correct: 0 },
+  { q: "WHAT IS THE EVIL WITCH IN NARNIA CALLED?", a: ["THE WHITE WITCH", "MALEFICENT", "URSULA"], correct: 0 },
+  { q: "WHICH MYTHICAL BIRD RISES FROM ITS OWN ASHES?", a: ["PHOENIX", "UNICORN", "DRAGON"], correct: 0 },
+  { q: "WHAT IS GANDALF IN THE LORD OF THE RINGS?", a: ["WIZARD", "ELF", "DWARF"], correct: 0 },
+  { q: "WHICH GREEK MONSTER HAD SNAKES INSTEAD OF HAIR?", a: ["MEDUSA", "HERCULES", "ZEUS"], correct: 0 },
+  { q: "WHAT IS A CREATURE THAT IS HALF HORSE AND HALF HUMAN CALLED?", a: ["CENTAUR", "NAIAD", "CYCLOPS"], correct: 0 },
+  { q: "WHICH GIANT IN THE STORIES HAD ONLY ONE EYE?", a: ["THE CYCLOPS", "THE TROLL", "THE DRAGON"], correct: 0 },
+  { q: "WHAT IS ASTRID LINDGREN'S YOUNG DETECTIVE CALLED?", a: ["KALLE BLOMKVIST", "EMIL", "KARLSSON"], correct: 0 },
+
+  /* ---- SPACE ---- */
+  { q: "HOW LONG DOES IT TAKE EARTH TO ORBIT THE SUN ONCE?", a: ["A DAY", "A YEAR", "A MONTH"], correct: 1 },
+  { q: "WHAT IS THE NEAREST STAR AFTER THE SUN CALLED?", a: ["PROXIMA CENTAURI", "THE NORTH STAR", "SIRIUS"], correct: 0 },
+  { q: "WHAT IS A REGION IN SPACE THAT SUCKS IN EVEN LIGHT CALLED?", a: ["BLACK HOLE", "COMET", "NEBULA"], correct: 0 },
+  { q: "WHICH PLANET ROTATES LYING ON ITS SIDE?", a: ["URANUS", "EARTH", "MARS"], correct: 0 },
+  { q: "HOW MANY NATURAL MOONS DOES EARTH HAVE?", a: ["ONE", "TWO", "THREE"], correct: 0 },
+  { q: "HOW LONG DOES LIGHT TAKE FROM THE SUN TO EARTH?", a: ["8 MINUTES", "1 SECOND", "1 DAY"], correct: 0 },
+  { q: "WHAT IS THE STUDY OF SPACE AND STARS CALLED?", a: ["ASTRONOMY", "GEOLOGY", "BIOLOGY"], correct: 0 },
+  { q: "WHICH PLANET IS CALLED THE MORNING STAR?", a: ["VENUS", "MARS", "JUPITER"], correct: 0 },
+  { q: "WHAT DO YOU MEASURE DISTANCE IN SPACE WITH?", a: ["LIGHT YEARS", "ONLY METRES", "ONLY KILOMETRES"], correct: 0 },
+  { q: "WHAT IS A COLLECTION OF BILLIONS OF STARS CALLED?", a: ["GALAXY", "PLANET", "COMET"], correct: 0 },
+
+  /* ---- NUMBERS / COLOURS ---- */
+  { q: "WHAT IS 12 TIMES 12?", a: ["124", "144", "100"], correct: 1 },
+  { q: "WHAT IS 100 DIVIDED BY 4?", a: ["20", "25", "40"], correct: 1 },
+  { q: "WHICH IS A PRIME NUMBER?", a: ["9", "7", "8"], correct: 1 },
+  { q: "WHAT IS 7 TIMES 8?", a: ["54", "56", "58"], correct: 1 },
+  { q: "HOW MANY DEGREES IS A RIGHT ANGLE?", a: ["45", "90", "180"], correct: 1 },
+  { q: "WHAT IS THE RESULT OF A MULTIPLICATION CALLED?", a: ["SUM", "PRODUCT", "DIFFERENCE"], correct: 1 },
+  { q: "WHAT IS 15 PLUS 27?", a: ["42", "41", "52"], correct: 0 },
+  { q: "HOW MANY SIDES DOES A HEXAGON HAVE?", a: ["FIVE", "SIX", "EIGHT"], correct: 1 },
+  { q: "WHAT IS HALF OF 250?", a: ["125", "150", "100"], correct: 0 },
+  { q: "WHICH ARE THE THREE PRIMARY COLOURS?", a: ["RED YELLOW BLUE", "GREEN PURPLE BROWN", "BLACK WHITE GREY"], correct: 0 },
+];
+
+const POOLS = { sv: POOLS_SV, en: POOLS_EN };
+
+/* ============ I18N ============ */
+const I18N = {
+  sv: {
+    title: "TIPSPROMENAD",
+    subtitle: "VÄLJ SVÅRIGHETSGRAD!",
+    levels: { latt: "LÄTT", medel: "MEDEL", svar: "SVÅR" },
+    badges: { latt: "⭐ LÄTT", medel: "⭐⭐ MEDEL", svar: "⭐⭐⭐ SVÅR" },
+    progress: n => "FRÅGA " + n + " AV 5",
+    nextQ: "NÄSTA FRÅGA ▶",
+    seeResult: "SE RESULTAT ▶",
+    praise: ["🎉 RÄTT!", "⭐ TOPPEN!", "🔥 SNYGGT!", "💪 PRECIS!"],
+    wrong: "😬 ÅNEJ! INTE RIKTIGT...",
+    summary: ["ÖVA LITE TILL! 💪", "BRA FÖRSÖK! 🙂", "NÄSTAN HELA VÄGEN! 👍", "RIKTIGT BRA! 🌟", "PERFEKT! DU ÄR FANTASTISK! 🏆"],
+    correctLabel: "RÄTT: ",
+    newRound: "NY OMGÅNG 🔄",
+    changeLevel: "BYT NIVÅ ◀",
+    flag: "🇬🇧 EN"
+  },
+  en: {
+    title: "QUIZ WALK",
+    subtitle: "CHOOSE DIFFICULTY!",
+    levels: { latt: "EASY", medel: "MEDIUM", svar: "HARD" },
+    badges: { latt: "⭐ EASY", medel: "⭐⭐ MEDIUM", svar: "⭐⭐⭐ HARD" },
+    progress: n => "QUESTION " + n + " OF 5",
+    nextQ: "NEXT QUESTION ▶",
+    seeResult: "SEE RESULT ▶",
+    praise: ["🎉 CORRECT!", "⭐ AWESOME!", "🔥 NICE!", "💪 EXACTLY!"],
+    wrong: "😬 OH NO! NOT QUITE...",
+    summary: ["KEEP PRACTISING! 💪", "GOOD TRY! 🙂", "ALMOST THERE! 👍", "REALLY GOOD! 🌟", "PERFECT! YOU ARE AMAZING! 🏆"],
+    correctLabel: "CORRECT: ",
+    newRound: "NEW ROUND 🔄",
+    changeLevel: "CHANGE LEVEL ◀",
+    flag: "🇸🇪 SV"
+  }
+};
+const SUMMARY_EMOJI = ["💪", "🙂", "👍", "🌟", "🏆"];
+
 /* ============ STATE ============ */
-let activePool = POOLS.latt;  // currently selected difficulty pool
+let lang = "sv";
+try { const saved = localStorage.getItem("tp_lang"); if (saved === "sv" || saved === "en") lang = saved; } catch (e) {}
+let activePool = POOLS[lang].latt;  // currently selected difficulty pool
 let order = [];        // shuffled indices into activePool
 let poolPos = 0;       // where we are in the shuffled pool
 let round = [];        // current 5 questions
@@ -555,8 +975,6 @@ let currentQ = 0;
 let score = 0;
 let answers = [];      // {chosen, correct} per question
 let answered = false;
-
-const PRAISE = ["🎉 RÄTT!", "⭐ TOPPEN!", "🔥 SNYGGT!", "💪 PRECIS!"];
 
 /* ============ AUDIO (Web Audio API) ============ */
 let audioCtx = null;
@@ -654,12 +1072,11 @@ function showScreen(id) {
 }
 
 /* ============ GAME ============ */
-const LEVEL_BADGES = { latt: "⭐ LÄTT", medel: "⭐⭐ MEDEL", svar: "⭐⭐⭐ SVÅR" };
 function startGame(level) {
   initAudio();
-  if (!POOLS[level]) level = "latt";
-  activePool = POOLS[level];
-  document.getElementById("levelBadge").textContent = LEVEL_BADGES[level];
+  if (!POOLS[lang][level]) level = "latt";
+  activePool = POOLS[lang][level];
+  document.getElementById("levelBadge").textContent = I18N[lang].badges[level];
   order = shuffle([...Array(activePool.length).keys()]);
   poolPos = 0;
   startRound();
@@ -680,7 +1097,7 @@ function startRound() {
 function renderQuestion() {
   answered = false;
   const item = round[currentQ];
-  document.getElementById("progress").textContent = "FRÅGA " + (currentQ + 1) + " AV 5";
+  document.getElementById("progress").textContent = I18N[lang].progress(currentQ + 1);
 
   // dots
   const dots = document.getElementById("dots");
@@ -722,21 +1139,22 @@ function chooseAnswer(chosen) {
   });
 
   answers.push({ chosen, correct: correctIdx });
+  const t = I18N[lang];
   const fb = document.getElementById("feedback");
   if (chosen === correctIdx) {
     score++;
-    fb.textContent = PRAISE[(Math.random() * PRAISE.length) | 0];
+    fb.textContent = t.praise[(Math.random() * t.praise.length) | 0];
     fb.className = "feedback good";
     playCorrect();
     launchConfetti(80);
   } else {
-    fb.textContent = "😬 ÅNEJ! INTE RIKTIGT...";
+    fb.textContent = t.wrong;
     fb.className = "feedback bad";
     playWrong();
   }
 
   const nextBtn = document.getElementById("nextBtn");
-  nextBtn.textContent = currentQ < 4 ? "NÄSTA FRÅGA ▶" : "SE RESULTAT ▶";
+  nextBtn.textContent = currentQ < 4 ? t.nextQ : t.seeResult;
   nextBtn.classList.remove("hidden");
 }
 function nextQuestion() {
@@ -748,14 +1166,9 @@ function showSummary() {
   showScreen("summary");
   document.getElementById("sumScore").textContent = score + "/5";
 
-  let msg, emoji;
-  if (score <= 1) { msg = "ÖVA LITE TILL! 💪"; emoji = "💪"; }
-  else if (score === 2) { msg = "BRA FÖRSÖK! 🙂"; emoji = "🙂"; }
-  else if (score === 3) { msg = "NÄSTAN HELA VÄGEN! 👍"; emoji = "👍"; }
-  else if (score === 4) { msg = "RIKTIGT BRA! 🌟"; emoji = "🌟"; }
-  else { msg = "PERFEKT! DU ÄR FANTASTISK! 🏆"; emoji = "🏆"; }
-  document.getElementById("sumEmoji").textContent = emoji;
-  document.getElementById("sumMsg").textContent = msg;
+  const idx = score <= 1 ? 0 : score - 1;   // 0-1→0, 2→1, 3→2, 4→3, 5→4
+  document.getElementById("sumEmoji").textContent = SUMMARY_EMOJI[idx];
+  document.getElementById("sumMsg").textContent = I18N[lang].summary[idx];
 
   const review = document.getElementById("review");
   review.innerHTML = "";
@@ -767,7 +1180,7 @@ function showSummary() {
     div.innerHTML =
       '<span class="mark">' + (ok ? "✅" : "❌") + '</span>' +
       '<div><div class="rq">' + item.q + '</div>' +
-      '<div class="ra">RÄTT: ' + item.a[item.correct] + '</div></div>';
+      '<div class="ra">' + I18N[lang].correctLabel + item.a[item.correct] + '</div></div>';
     review.appendChild(div);
   });
 
@@ -777,13 +1190,36 @@ function showSummary() {
   }
 }
 
+/* ============ LANGUAGE ============ */
+function applyLang() {
+  const t = I18N[lang];
+  document.documentElement.lang = lang;
+  document.title = t.title;
+  document.getElementById("logoText").textContent = t.title;
+  document.getElementById("subtitle").textContent = t.subtitle;
+  document.querySelectorAll(".level-btn").forEach(btn => {
+    btn.querySelector(".lbl").textContent = t.levels[btn.dataset.level];
+  });
+  document.getElementById("flagBtn").textContent = t.flag;
+  document.getElementById("againBtn").textContent = t.newRound;
+  document.getElementById("levelBtn").textContent = t.changeLevel;
+}
+function toggleLang() {
+  lang = (lang === "sv") ? "en" : "sv";
+  try { localStorage.setItem("tp_lang", lang); } catch (e) {}
+  applyLang();
+}
+
 /* ============ EVENTS ============ */
 document.querySelectorAll(".level-btn").forEach(btn => {
   btn.addEventListener("click", () => startGame(btn.dataset.level));
 });
+document.getElementById("flagBtn").addEventListener("click", toggleLang);
 document.getElementById("nextBtn").addEventListener("click", nextQuestion);
 document.getElementById("againBtn").addEventListener("click", startRound);
 document.getElementById("levelBtn").addEventListener("click", () => showScreen("start"));
+
+applyLang();
 
 // prevent double-tap zoom
 document.addEventListener("dblclick", e => e.preventDefault(), { passive: false });
