@@ -56,9 +56,18 @@
   }
   .big-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #b8860b; }
 
+  .levels { display:flex; flex-direction:column; gap: 22px; width: 100%; max-width: 480px; }
+  .level-btn { width: 100%; display:flex; align-items:center; justify-content:center; gap: 14px; }
+  .level-btn .stars { font-size: 26px; letter-spacing: -2px; }
+
   /* ---- QUIZ SCREEN ---- */
   .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 22px; }
   .progress { font-size: 24px; font-weight: 800; color: #ffd23f; }
+  .level-badge {
+    font-size: 18px; font-weight: 900; color: #7a0a14;
+    background: linear-gradient(180deg, #ffe27a 0%, #ffcc00 100%);
+    padding: 7px 16px; border-radius: 16px; white-space: nowrap;
+  }
   .dots { display:flex; gap: 10px; }
   .dot { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.3); }
   .dot.done { background: #ffd23f; }
@@ -118,6 +127,13 @@
   .review-item .mark { font-size: 34px; flex: 0 0 auto; }
   .review-item .rq { font-size: 20px; font-weight: 800; line-height: 1.2; }
   .review-item .ra { font-size: 17px; font-weight: 700; color: #ffd23f; margin-top: 3px; }
+  .sum-buttons { display:flex; flex-direction:column; gap: 16px; align-items:center; }
+  .ghost-btn {
+    background: rgba(255,255,255,0.16); color: #fff;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+    min-height: 72px; font-size: 26px; padding: 0 40px;
+  }
+  .ghost-btn:active { box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
 </style>
 </head>
 <body>
@@ -126,14 +142,19 @@
 <!-- START -->
 <div id="start" class="screen active">
   <div class="logo"><span class="emoji">🚶‍♂️🌲</span>TIPSPROMENAD</div>
-  <div class="subtitle">FRÅGOR FÖR SMARTA BARN!</div>
-  <button class="big-btn" id="startBtn">STARTA! ▶</button>
+  <div class="subtitle">VÄLJ SVÅRIGHETSGRAD!</div>
+  <div class="levels">
+    <button class="big-btn level-btn" data-level="latt"><span class="stars">⭐</span>LÄTT</button>
+    <button class="big-btn level-btn" data-level="medel"><span class="stars">⭐⭐</span>MEDEL</button>
+    <button class="big-btn level-btn" data-level="svar"><span class="stars">⭐⭐⭐</span>SVÅR</button>
+  </div>
 </div>
 
 <!-- QUIZ -->
 <div id="quiz" class="screen">
   <div class="topbar">
     <div class="progress" id="progress">FRÅGA 1 AV 5</div>
+    <div class="level-badge" id="levelBadge">⭐ LÄTT</div>
     <div class="dots" id="dots"></div>
   </div>
   <div class="question" id="question">FRÅGA?</div>
@@ -150,12 +171,16 @@
   <div class="sum-score" id="sumScore">0/5</div>
   <div class="sum-msg" id="sumMsg"></div>
   <div class="review" id="review"></div>
-  <button class="big-btn" id="againBtn">NY OMGÅNG 🔄</button>
+  <div class="sum-buttons">
+    <button class="big-btn" id="againBtn">NY OMGÅNG 🔄</button>
+    <button class="big-btn ghost-btn" id="levelBtn">BYT NIVÅ ◀</button>
+  </div>
 </div>
 
 <script>
-/* ============ QUESTION POOL — 100 frågor, 10 per ämne ============ */
-const POOL = [
+/* ============ QUESTION POOLS — 3 nivåer, 100 frågor var, 10 per ämne ============ */
+const POOLS = {};
+POOLS.latt = [
   /* ---- DJUR ---- */
   { q: "VILKET DJUR SÄGER MU?", a: ["KO", "HÖNA", "GRIS"], correct: 0 },
   { q: "VILKET DJUR HAR EN LÅNG SNABEL?", a: ["HÄST", "ELEFANT", "KANIN"], correct: 1 },
@@ -277,8 +302,253 @@ const POOL = [
   { q: "VILKEN FÄRG HAR SNÖ?", a: ["VIT", "SVART", "RÖD"], correct: 0 },
 ];
 
+POOLS.medel = [
+  /* ---- DJUR ---- */
+  { q: "HUR MÅNGA BEN HAR EN SPINDEL?", a: ["SEX", "ÅTTA", "TIO"], correct: 1 },
+  { q: "VILKET DJUR BYTER FÄRG FÖR ATT GÖMMA SIG?", a: ["KAMELEONT", "HÄST", "KO"], correct: 0 },
+  { q: "VILKET ÄR VÄRLDENS SNABBASTE LANDDJUR?", a: ["GEPARD", "ELEFANT", "SNIGEL"], correct: 0 },
+  { q: "VAD KALLAS ETT DJUR SOM BARA ÄTER VÄXTER?", a: ["KÖTTÄTARE", "VÄXTÄTARE", "ALLÄTARE"], correct: 1 },
+  { q: "VAD ANDAS FISKAR MED UNDER VATTNET?", a: ["GÄLAR", "LUNGOR", "NÄSA"], correct: 0 },
+  { q: "VAD KALLAS EN GRUPP VARGAR?", a: ["FLOCK", "STIM", "SVÄRM"], correct: 0 },
+  { q: "VILKET DJUR LÄGGER ÄGG MEN ÄR ETT DÄGGDJUR?", a: ["NÄBBDJUR", "HUND", "HÄST"], correct: 0 },
+  { q: "VAD KALLAS EN BABYGRODA?", a: ["KALV", "GRODYNGEL", "KYCKLING"], correct: 1 },
+  { q: "VILKET DJUR HAR LÄNGST HALS?", a: ["GIRAFF", "KAMEL", "ZEBRA"], correct: 0 },
+  { q: "VAD ÄTER EN IGELKOTT HELST?", a: ["GRÄS", "INSEKTER", "FISK"], correct: 1 },
+
+  /* ---- NATUR / VÄDER ---- */
+  { q: "VAD HÄNDER MED VATTEN NÄR DET BLIR ÅNGA?", a: ["DET KOKAR", "DET FRYSER", "DET SMÄLTER"], correct: 0 },
+  { q: "HUR MÅNGA ÅRSTIDER HAR SVERIGE?", a: ["TVÅ", "FYRA", "SEX"], correct: 1 },
+  { q: "VAD MÄTER MAN TEMPERATUR MED?", a: ["LINJAL", "TERMOMETER", "VÅG"], correct: 1 },
+  { q: "VAD KALLAS LÅNG TID UTAN REGN?", a: ["TORKA", "STORM", "FLOD"], correct: 0 },
+  { q: "VILKEN ÅRSTID FALLER LÖVEN FRÅN TRÄDEN?", a: ["VÅR", "HÖST", "SOMMAR"], correct: 1 },
+  { q: "VAD BILDAS AV SMÅ VATTENDROPPAR PÅ HIMLEN?", a: ["MOLN", "STJÄRNOR", "BERG"], correct: 0 },
+  { q: "VAD KALLAS FRUSEN NEDERBÖRD SOM SMÅ KULOR?", a: ["HAGEL", "DIMMA", "DAGG"], correct: 0 },
+  { q: "VAD KALLAS EN STOR VIRVLANDE STORM?", a: ["ORKAN", "BRIS", "DUGGREGN"], correct: 0 },
+  { q: "VAD KALLAS VATTEN SOM RINNER MOT HAVET?", a: ["FLOD", "SJÖ", "DAMM"], correct: 0 },
+  { q: "VAD BEHÖVER EN VÄXT FÖR ATT VÄXA?", a: ["BARA MÖRKER", "SOL OCH VATTEN", "BARA STEN"], correct: 1 },
+
+  /* ---- SPORT ---- */
+  { q: "HUR LÅNGT ÄR ETT MARATON UNGEFÄR?", a: ["1 KM", "42 KM", "100 KM"], correct: 1 },
+  { q: "I VILKET LAND UPPFANNS DE OLYMPISKA SPELEN?", a: ["GREKLAND", "SVERIGE", "KINA"], correct: 0 },
+  { q: "HUR MÅNGA RINGAR HAR DEN OLYMPISKA SYMBOLEN?", a: ["TRE", "FEM", "SJU"], correct: 1 },
+  { q: "VAD KALLAS TRE MÅL AV SAMMA SPELARE I FOTBOLL?", a: ["HATTRICK", "STRAFF", "HÖRNA"], correct: 0 },
+  { q: "VILKEN SPORT SPELAS PÅ WIMBLEDON?", a: ["TENNIS", "FOTBOLL", "GOLF"], correct: 0 },
+  { q: "HUR MÅNGA SPELARE HAR ETT ISHOCKEYLAG PÅ ISEN?", a: ["SEX", "TIO", "ELVA"], correct: 0 },
+  { q: "VAD ANVÄNDER MAN I BORDTENNIS?", a: ["RACKET", "KLUBBA", "HANDSKE"], correct: 0 },
+  { q: "VAD KALLAS DET NÄR MAN SIMMAR PÅ RYGG?", a: ["RYGGSIM", "BRÖSTSIM", "CRAWL"], correct: 0 },
+  { q: "I VILKEN SPORT GÖR MAN EN SLAM DUNK?", a: ["BASKET", "TENNIS", "GOLF"], correct: 0 },
+  { q: "HUR MÅNGA PERIODER HAR EN ISHOCKEYMATCH?", a: ["TVÅ", "TRE", "FYRA"], correct: 1 },
+
+  /* ---- MAT ---- */
+  { q: "VILKET LAND KOMMER PIZZA IFRÅN?", a: ["ITALIEN", "JAPAN", "SVERIGE"], correct: 0 },
+  { q: "VAD BEHÖVS FÖR ATT DEG SKA JÄSA?", a: ["JÄST", "SALT", "IS"], correct: 0 },
+  { q: "VILKET VITAMIN FINNS MYCKET AV I APELSINER?", a: ["C-VITAMIN", "JÄRN", "SOCKER"], correct: 0 },
+  { q: "VAD BLIR GRÄDDE OM MAN VISPAR DEN MYCKET LÄNGE?", a: ["SMÖR", "OST", "MJÖLK"], correct: 0 },
+  { q: "VILKEN KRYDDA ÄR RÖD OCH STARK?", a: ["CHILI", "SALT", "SOCKER"], correct: 0 },
+  { q: "VAD GÖR MAN SYLT AV?", a: ["BÄR", "STEN", "SAND"], correct: 0 },
+  { q: "VILKET LAND ÄR KÄNT FÖR SUSHI?", a: ["JAPAN", "ITALIEN", "NORGE"], correct: 0 },
+  { q: "VAD KALLAS MAT HELT UTAN KÖTT?", a: ["VEGETARISK", "STEKT", "SÖT"], correct: 0 },
+  { q: "VILKEN FRUKT HAR HÅRT SKAL OCH MJÖLK INUTI?", a: ["KOKOSNÖT", "ÄPPLE", "JORDGUBBE"], correct: 0 },
+  { q: "VAD ANVÄNDS IBLAND FÖR ATT SÖTA UTAN SOCKER?", a: ["HONUNG", "SALT", "PEPPAR"], correct: 0 },
+
+  /* ---- GEOGRAFI ---- */
+  { q: "VAD HETER NORGES HUVUDSTAD?", a: ["OSLO", "STOCKHOLM", "HELSINGFORS"], correct: 0 },
+  { q: "VILKET ÄR VÄRLDENS STÖRSTA HAV?", a: ["STILLA HAVET", "ÖSTERSJÖN", "MEDELHAVET"], correct: 0 },
+  { q: "PÅ VILKEN KONTINENT LIGGER EGYPTEN?", a: ["AFRIKA", "EUROPA", "ASIEN"], correct: 0 },
+  { q: "VAD HETER DANMARKS HUVUDSTAD?", a: ["KÖPENHAMN", "OSLO", "BERLIN"], correct: 0 },
+  { q: "VILKEN ÄR EN AV VÄRLDENS LÄNGSTA FLODER?", a: ["NILEN", "KLARÄLVEN", "THEMSEN"], correct: 0 },
+  { q: "HUR MÅNGA KONTINENTER FINNS DET?", a: ["FEM", "SJU", "TIO"], correct: 1 },
+  { q: "VILKET LAND ÄR FORMAT SOM EN STÖVEL?", a: ["ITALIEN", "FRANKRIKE", "SPANIEN"], correct: 0 },
+  { q: "VAD HETER SVERIGES HÖGSTA BERG?", a: ["KEBNEKAISE", "MOUNT EVEREST", "GALDHÖPIGGEN"], correct: 0 },
+  { q: "VILKET HAV LIGGER ÖSTER OM SVERIGE?", a: ["ÖSTERSJÖN", "ATLANTEN", "MEDELHAVET"], correct: 0 },
+  { q: "VAD HETER FINLANDS HUVUDSTAD?", a: ["HELSINGFORS", "OSLO", "RIGA"], correct: 0 },
+
+  /* ---- KROPPEN ---- */
+  { q: "VILKET ORGAN PUMPAR BLOD I KROPPEN?", a: ["HJÄRTAT", "LUNGAN", "MAGEN"], correct: 0 },
+  { q: "VILKET ORGAN ANVÄNDER DU FÖR ATT ANDAS?", a: ["LUNGORNA", "LEVERN", "MAGEN"], correct: 0 },
+  { q: "HUR MÅNGA LUNGOR HAR DU?", a: ["EN", "TVÅ", "TRE"], correct: 1 },
+  { q: "VAD SKYDDAR DIN HJÄRNA?", a: ["SKALLEN", "REVBENEN", "HUDEN"], correct: 0 },
+  { q: "VAD KALLAS DET HÅRDA INUTI SOM GER KROPPEN STÖD?", a: ["SKELETTET", "MUSKLER", "BLOD"], correct: 0 },
+  { q: "VAD ANVÄNDER MAN MUSKLERNA TILL?", a: ["ATT RÖRA SIG", "ATT SE", "ATT HÖRA"], correct: 0 },
+  { q: "VILKET ÄR KROPPENS STÖRSTA ORGAN?", a: ["HUDEN", "HJÄRTAT", "ÖGAT"], correct: 0 },
+  { q: "VAD KALLAS RÖRET MATEN ÅKER NER I?", a: ["MATSTRUPEN", "LUFTSTRUPEN", "ÅDERN"], correct: 0 },
+  { q: "VAR SMÄLTS MATEN DU ÄTER?", a: ["I MAGEN", "I HJÄRNAN", "I ÖRAT"], correct: 0 },
+  { q: "VAD ANVÄNDER DU TÄNDERNA TILL?", a: ["TUGGA", "SE", "HÖRA"], correct: 0 },
+
+  /* ---- FORDON ---- */
+  { q: "VAD DRIVER EN ELBIL?", a: ["EL", "BENSIN", "KOL"], correct: 0 },
+  { q: "VAD KALLAS EN PERSON SOM KÖR TÅG?", a: ["LOKFÖRARE", "PILOT", "KAPTEN"], correct: 0 },
+  { q: "VAD KALLAS EN PERSON SOM FLYGER FLYGPLAN?", a: ["PILOT", "CHAUFFÖR", "SJÖMAN"], correct: 0 },
+  { q: "VAD ANVÄNDER EN SEGELBÅT FÖR ATT RÖRA SIG?", a: ["VINDEN", "MOTOR", "PEDALER"], correct: 0 },
+  { q: "VAD KALLAS EN CYKEL MED LITEN MOTOR?", a: ["MOPED", "TRAKTOR", "BUSS"], correct: 0 },
+  { q: "VAD KALLAS ETT FORDON SOM ÅKER UNDER VATTNET?", a: ["UBÅT", "FÄRJA", "KANOT"], correct: 0 },
+  { q: "VAD BEHÖVER ETT FLYGPLAN FÖR ATT LYFTA?", a: ["FART OCH VINGAR", "SEGEL", "BARA HJUL"], correct: 0 },
+  { q: "VAD KALLAS EN STOR BÅT SOM FRAKTAR BILAR OCH FOLK?", a: ["FÄRJA", "KAJAK", "FLOTTE"], correct: 0 },
+  { q: "VILKET FORDON HAR LARVFÖTTER ISTÄLLET FÖR HJUL?", a: ["GRÄVMASKIN", "CYKEL", "BIL"], correct: 0 },
+  { q: "VAD HETER EN PERSON SOM STYR ETT SKEPP?", a: ["KAPTEN", "PILOT", "BAGARE"], correct: 0 },
+
+  /* ---- SAGOR / FANTASY ---- */
+  { q: "VEM SKREV BÖCKERNA OM PIPPI LÅNGSTRUMP?", a: ["ASTRID LINDGREN", "H.C. ANDERSEN", "BRÖDERNA GRIMM"], correct: 0 },
+  { q: "VAD HETER FLICKAN SOM FÖLJDE EN VIT KANIN NER I ETT HÅL?", a: ["ALICE", "ASKUNGEN", "SNÖVIT"], correct: 0 },
+  { q: "HUR MÅNGA DVÄRGAR BODDE MED SNÖVIT?", a: ["FEM", "SJU", "TIO"], correct: 1 },
+  { q: "VAD TAPPADE ASKUNGEN PÅ TRAPPAN?", a: ["EN SKO", "EN HATT", "EN VANTE"], correct: 0 },
+  { q: "VAD FÖRVANDLADES GRODAN TILL MED EN PUSS?", a: ["EN PRINS", "EN DRAKE", "EN FÅGEL"], correct: 0 },
+  { q: "VEM ÄR TRÄDOCKAN VARS NÄSA VÄXTE NÄR HAN LJÖG?", a: ["PINOCCHIO", "PETER PAN", "ALADDIN"], correct: 0 },
+  { q: "VILKET DJUR BLÅSTE NER GRISARNAS HUS?", a: ["VARGEN", "RÄVEN", "BJÖRNEN"], correct: 0 },
+  { q: "VEM BOR I EN LAMPA OCH UPPFYLLER ÖNSKNINGAR?", a: ["ANDEN", "HÄXAN", "TROLLET"], correct: 0 },
+  { q: "VAD HETER POJKEN SOM ALDRIG VILLE BLI STOR?", a: ["PETER PAN", "HARRY POTTER", "ROBIN HOOD"], correct: 0 },
+  { q: "VAD LÄMNADE HANS OCH GRETA EFTER SIG I SKOGEN?", a: ["BRÖDSMULOR", "GULD", "BLOMMOR"], correct: 0 },
+
+  /* ---- RYMDEN ---- */
+  { q: "VILKEN PLANET ÄR STÖRST I VÅRT SOLSYSTEM?", a: ["JUPITER", "JORDEN", "MARS"], correct: 0 },
+  { q: "HUR MÅNGA PLANETER FINNS I VÅRT SOLSYSTEM?", a: ["SJU", "ÅTTA", "TOLV"], correct: 1 },
+  { q: "VAD KALLAS EN STEN SOM BRINNER NÄR DEN FALLER GENOM LUFTEN?", a: ["METEOR", "KOMET", "MÅNE"], correct: 0 },
+  { q: "VILKEN PLANET HAR STORA RINGAR RUNT SIG?", a: ["SATURNUS", "MARS", "JORDEN"], correct: 0 },
+  { q: "VAD KRETSAR MÅNEN RUNT?", a: ["JORDEN", "SOLEN", "MARS"], correct: 0 },
+  { q: "VAD KALLAS EN STJÄRNA MED SVANS AV IS OCH STOFT?", a: ["KOMET", "PLANET", "MÅNE"], correct: 0 },
+  { q: "VEM VAR FÖRST ATT GÅ PÅ MÅNEN?", a: ["NEIL ARMSTRONG", "PIPPI", "COLUMBUS"], correct: 0 },
+  { q: "VILKEN PLANET ÄR NÄRMAST SOLEN?", a: ["MERKURIUS", "JORDEN", "SATURNUS"], correct: 0 },
+  { q: "VAD KALLAS VÄGEN EN PLANET TAR RUNT SOLEN?", a: ["BANA", "STIG", "GATA"], correct: 0 },
+  { q: "VAD HETER VÅR GALAX?", a: ["VINTERGATAN", "REGNBÅGEN", "NORRSKEN"], correct: 0 },
+
+  /* ---- SIFFROR / FÄRGER ---- */
+  { q: "VAD BLIR 6 PLUS 7?", a: ["12", "13", "14"], correct: 1 },
+  { q: "VAD BLIR 9 MINUS 4?", a: ["3", "5", "6"], correct: 1 },
+  { q: "VAD BLIR 3 GÅNGER 3?", a: ["6", "9", "12"], correct: 1 },
+  { q: "VILKA FÄRGER BLIR LILA?", a: ["RÖD OCH BLÅ", "GUL OCH GRÖN", "SVART OCH VIT"], correct: 0 },
+  { q: "HUR MÅNGA ÄR ETT HALVT DUSSIN?", a: ["SEX", "TIO", "TOLV"], correct: 0 },
+  { q: "VAD BLIR 10 PLUS 15?", a: ["20", "25", "30"], correct: 1 },
+  { q: "VILKEN SIFFRA ÄR JÄMN?", a: ["7", "8", "9"], correct: 1 },
+  { q: "VAD BLIR 20 DELAT PÅ 2?", a: ["5", "10", "15"], correct: 1 },
+  { q: "HUR MÅNGA SIDOR HAR EN TRIANGEL?", a: ["TRE", "FYRA", "FEM"], correct: 0 },
+  { q: "VAD BLIR 8 PLUS 8?", a: ["14", "16", "18"], correct: 1 },
+];
+
+POOLS.svar = [
+  /* ---- DJUR ---- */
+  { q: "VAD KALLAS LÄRAN OM DJUR?", a: ["ZOOLOGI", "BOTANIK", "GEOLOGI"], correct: 0 },
+  { q: "VILKET ÄR ETT AV VÄRLDENS GIFTIGASTE DJUR?", a: ["PILGIFTSGRODA", "KANIN", "KO"], correct: 0 },
+  { q: "HUR MÅNGA HJÄRTAN HAR EN BLÄCKFISK?", a: ["ETT", "TRE", "FEM"], correct: 1 },
+  { q: "VILKET DJUR HAR DET STARKASTE BETTET?", a: ["KROKODIL", "KANIN", "FÅR"], correct: 0 },
+  { q: "VAD KALLAS DJUR UTAN RYGGRAD?", a: ["RYGGRADSLÖSA", "DÄGGDJUR", "FÅGLAR"], correct: 0 },
+  { q: "VILKET DÄGGDJUR KAN FAKTISKT FLYGA?", a: ["FLADDERMUS", "EKORRE", "RÅTTA"], correct: 0 },
+  { q: "HUR LÅNG KAN EN BLÅVAL BLI UNGEFÄR?", a: ["3 METER", "30 METER", "100 METER"], correct: 1 },
+  { q: "VAD KALLAS NÄR EN LARV BLIR FJÄRIL?", a: ["METAMORFOS", "FOTOSYNTES", "EVOLUTION"], correct: 0 },
+  { q: "VILKET DJUR HAR FLEST BEN?", a: ["TUSENFOTING", "SPINDEL", "MYRA"], correct: 0 },
+  { q: "VAD KALLAS ETT DJUR SOM ÄR AKTIVT PÅ NATTEN?", a: ["NATTAKTIVT", "DAGAKTIVT", "VINTERSOVANDE"], correct: 0 },
+
+  /* ---- NATUR / VÄDER ---- */
+  { q: "VAD KALLAS NÄR VÄXTER GÖR ENERGI AV SOLLJUS?", a: ["FOTOSYNTES", "ANDNING", "FÖRDUNSTNING"], correct: 0 },
+  { q: "VAD KALLAS VATTNETS RESA FRÅN HAV TILL MOLN OCH REGN?", a: ["VATTNETS KRETSLOPP", "VINDKRAFT", "JORDBÄVNING"], correct: 0 },
+  { q: "VILKEN GAS ANDAS VÄXTER IN?", a: ["KOLDIOXID", "SYRE", "HELIUM"], correct: 0 },
+  { q: "VAD MÄTER MAN LUFTTRYCK MED?", a: ["BAROMETER", "TERMOMETER", "LINJAL"], correct: 0 },
+  { q: "VAD KALLAS GLÖDANDE STEN SOM RINNER UR EN VULKAN?", a: ["LAVA", "IS", "SAND"], correct: 0 },
+  { q: "PÅ VILKET HALVKLOT ÄR DET VINTER NÄR VI HAR SOMMAR?", a: ["SÖDRA", "NORRA", "ÖSTRA"], correct: 0 },
+  { q: "VAD ORSAKAR EN BLIXT?", a: ["ELEKTRICITET", "VIND", "BARA REGN"], correct: 0 },
+  { q: "VAD KALLAS ETT TORRT OMRÅDE MED MYCKET SAND?", a: ["ÖKEN", "REGNSKOG", "TUNDRA"], correct: 0 },
+  { q: "VILKEN GAS ANDAS MÄNNISKOR IN FÖR ATT LEVA?", a: ["SYRE", "HELIUM", "KOLDIOXID"], correct: 0 },
+  { q: "VAD KALLAS EN MÄTARE SOM VISAR VINDRIKTNING?", a: ["VINDFLÖJEL", "TERMOMETER", "KLOCKA"], correct: 0 },
+
+  /* ---- SPORT ---- */
+  { q: "HUR OFTA HÅLLS SOMMAR-OS?", a: ["VARJE ÅR", "VART FJÄRDE ÅR", "VART TIONDE ÅR"], correct: 1 },
+  { q: "VILKET LAND HAR VUNNIT FLEST FOTBOLLS-VM?", a: ["BRASILIEN", "SVERIGE", "NORGE"], correct: 0 },
+  { q: "HUR MÅNGA RUTOR HAR ETT SCHACKBRÄDE?", a: ["32", "64", "100"], correct: 1 },
+  { q: "I VILKEN SPORT ANVÄNDS ORDET BIRDIE?", a: ["GOLF", "TENNIS", "BOXNING"], correct: 0 },
+  { q: "HUR LÅNG ÄR ORDINARIE TID I EN FOTBOLLSMATCH?", a: ["60 MIN", "90 MIN", "120 MIN"], correct: 1 },
+  { q: "VILKET LAND KOMMER KAMPSPORTEN JUDO IFRÅN?", a: ["JAPAN", "BRASILIEN", "ITALIEN"], correct: 0 },
+  { q: "HUR MÅNGA SPELARE HAR ETT BASKETLAG PÅ PLANEN?", a: ["FEM", "SEX", "SJU"], correct: 0 },
+  { q: "VAR HÖLLS DE FÖRSTA MODERNA OS 1896?", a: ["ATEN", "PARIS", "LONDON"], correct: 0 },
+  { q: "VAD KALLAS ETT SLAG I HÅL PÅ ETT SLAG I GOLF?", a: ["HOLE IN ONE", "STRIKE", "HOMERUN"], correct: 0 },
+  { q: "HUR HÖGT SITTER EN BASKETKORG UNGEFÄR?", a: ["1 METER", "3 METER", "10 METER"], correct: 1 },
+
+  /* ---- MAT ---- */
+  { q: "VILKET NÄRINGSÄMNE GER MEST ENERGI?", a: ["FETT", "VATTEN", "SALT"], correct: 0 },
+  { q: "VAD ÄR JÄST FÖR NÅGOT?", a: ["EN SVAMP", "EN STEN", "ETT SALT"], correct: 0 },
+  { q: "VILKEN SYRA FINNS I CITRONER?", a: ["CITRONSYRA", "SALTSYRA", "SVAVELSYRA"], correct: 0 },
+  { q: "VAD KALLAS KOST HELT UTAN ANIMALISKA PRODUKTER?", a: ["VEGANSK", "VEGETARISK", "GLUTENFRI"], correct: 0 },
+  { q: "VILKET LAND ODLAR MEST RIS I VÄRLDEN?", a: ["KINA", "ITALIEN", "SVERIGE"], correct: 0 },
+  { q: "VILKEN GAS BILDAS NÄR JÄST OMVANDLAR SOCKER?", a: ["KOLDIOXID", "SYRE", "SALT"], correct: 0 },
+  { q: "VILKEN KRYDDA ÄR VÄRLDENS DYRASTE?", a: ["SAFFRAN", "SALT", "PEPPAR"], correct: 0 },
+  { q: "FRÅN VILKEN BÖNA GÖRS CHOKLAD?", a: ["KAKAOBÖNAN", "SOJABÖNAN", "KAFFEBÖNAN"], correct: 0 },
+  { q: "VAD KALLAS SVAMP SOM ÄR FARLIG ATT ÄTA?", a: ["GIFTSVAMP", "MATSVAMP", "JÄST"], correct: 0 },
+  { q: "VILKET VITAMIN BILDAR KROPPEN AV SOLLJUS?", a: ["D-VITAMIN", "C-VITAMIN", "JÄRN"], correct: 0 },
+
+  /* ---- GEOGRAFI ---- */
+  { q: "VILKET ÄR VÄRLDENS STÖRSTA LAND TILL YTAN?", a: ["RYSSLAND", "KINA", "KANADA"], correct: 0 },
+  { q: "VILKEN ÄR VÄRLDENS HÖGSTA BERGSTOPP?", a: ["MOUNT EVEREST", "KEBNEKAISE", "KILIMANJARO"], correct: 0 },
+  { q: "VAD HETER TYSKLANDS HUVUDSTAD?", a: ["BERLIN", "MÜNCHEN", "HAMBURG"], correct: 0 },
+  { q: "VILKEN ÄR VÄRLDENS STÖRSTA VARMA ÖKEN?", a: ["SAHARA", "GOBI", "ATACAMA"], correct: 0 },
+  { q: "I VILKET LAND RINNER FLODEN AMAZONAS MEST?", a: ["BRASILIEN", "EGYPTEN", "KINA"], correct: 0 },
+  { q: "VAD HETER DEN TÄNKTA LINJEN RUNT JORDENS MITT?", a: ["EKVATORN", "NORDPOLEN", "MERIDIANEN"], correct: 0 },
+  { q: "HUR MÅNGA LÄNDER FINNS DET UNGEFÄR I VÄRLDEN?", a: ["50", "200", "1000"], correct: 1 },
+  { q: "VILKET ÄR VÄRLDENS MINSTA LAND?", a: ["VATIKANSTATEN", "MONACO", "MALTA"], correct: 0 },
+  { q: "VAD HETER USA:S HUVUDSTAD?", a: ["WASHINGTON D.C.", "NEW YORK", "LOS ANGELES"], correct: 0 },
+  { q: "VILKET HAV ÄR STÖRST?", a: ["STILLA HAVET", "ATLANTEN", "INDISKA OCEANEN"], correct: 0 },
+
+  /* ---- KROPPEN ---- */
+  { q: "HUR MÅNGA BEN HAR EN VUXEN MÄNNISKA UNGEFÄR?", a: ["106", "206", "506"], correct: 1 },
+  { q: "VILKET ORGAN RENAR BLODET?", a: ["NJURARNA", "HJÄRTAT", "LUNGAN"], correct: 0 },
+  { q: "VAD KALLAS ÄMNET I BLODET SOM BÄR SYRE?", a: ["HEMOGLOBIN", "KALCIUM", "INSULIN"], correct: 0 },
+  { q: "HUR MÅNGA KAMRAR HAR HJÄRTAT?", a: ["TVÅ", "FYRA", "SEX"], correct: 1 },
+  { q: "VILKET ÄR KROPPENS MINSTA BEN (I ÖRAT)?", a: ["STIGBYGELN", "LÅRBENET", "REVBENET"], correct: 0 },
+  { q: "VAD STYR ALLA KROPPENS FUNKTIONER?", a: ["HJÄRNAN", "MAGEN", "HUDEN"], correct: 0 },
+  { q: "VILKET ORGAN PRODUCERAR GALLA?", a: ["LEVERN", "HJÄRTAT", "LUNGAN"], correct: 0 },
+  { q: "HUR LÅNG ÄR TUNNTARMEN UNGEFÄR?", a: ["1 METER", "6 METER", "20 METER"], correct: 1 },
+  { q: "VAD KALLAS DET FLYTANDE SOM TRANSPORTERAR SYRE I KROPPEN?", a: ["BLODET", "BENEN", "HUDEN"], correct: 0 },
+  { q: "VILKET SINNE SITTER I TUNGAN?", a: ["SMAK", "SYN", "HÖRSEL"], correct: 0 },
+
+  /* ---- FORDON ---- */
+  { q: "VILKET BRÄNSLE ANVÄNDER EN RAKET OFTA?", a: ["FLYTANDE BRÄNSLE", "KOL", "VED"], correct: 0 },
+  { q: "VEM BYGGDE DEN FÖRSTA BILEN MED BENSINMOTOR?", a: ["KARL BENZ", "HENRY FORD", "ELON MUSK"], correct: 0 },
+  { q: "VAD HETER DET SNABBA PASSAGERARPLANET SOM NU ÄR PENSIONERAT?", a: ["CONCORDE", "BOEING 747", "CESSNA"], correct: 0 },
+  { q: "VAD MÄTER HUR FORT ETT FORDON ÅKER?", a: ["HASTIGHETSMÄTARE", "TERMOMETER", "KOMPASS"], correct: 0 },
+  { q: "VAD KALLAS ETT TÅG SOM SVÄVAR MED MAGNETER?", a: ["MAGLEV", "ÅNGTÅG", "SPÅRVAGN"], correct: 0 },
+  { q: "VAD DRIVER ETT ÅNGTÅG?", a: ["ÅNGA FRÅN VATTEN", "EL", "SEGEL"], correct: 0 },
+  { q: "VAD ANVÄNDER EN UBÅT FÖR ATT SE ÖVER YTAN?", a: ["PERISKOP", "SEGEL", "VINGE"], correct: 0 },
+  { q: "VILKET FORDON ANVÄNDS FÖR ATT UTFORSKA MARS?", a: ["ROVER", "FÄRJA", "SPÅRVAGN"], correct: 0 },
+  { q: "VARFÖR FLYTER ETT TUNGT SKEPP?", a: ["DET TRÄNGER UNDAN VATTEN", "DET ÄR MAGNETISKT", "DET ÄR VARMT"], correct: 0 },
+  { q: "VAD KALLAS KRAFTEN SOM LYFTER ETT FLYGPLAN?", a: ["LYFTKRAFT", "TYNGDKRAFT", "FRIKTION"], correct: 0 },
+
+  /* ---- SAGOR / FANTASY ---- */
+  { q: "VEM SKREV SAGAN OM DEN FULA ANKUNGEN?", a: ["H.C. ANDERSEN", "ASTRID LINDGREN", "J.K. ROWLING"], correct: 0 },
+  { q: "VAD HETER TROLLKARLSSKOLAN I HARRY POTTER?", a: ["HOGWARTS", "NARNIA", "MORDOR"], correct: 0 },
+  { q: "I VILKEN BERÄTTELSE FINNS HOBER OCH EN RING?", a: ["SAGAN OM RINGEN", "PIPPI", "BAMSE"], correct: 0 },
+  { q: "VAD KALLAS DEN ONDA HÄXAN I NARNIA?", a: ["DEN VITA HÄXAN", "MALEFICENT", "URSULA"], correct: 0 },
+  { q: "VILKEN SAGOFÅGEL ÅTERUPPSTÅR UR SIN EGEN ASKA?", a: ["FENIX", "ENHÖRNING", "DRAKE"], correct: 0 },
+  { q: "VAD ÄR GANDALF I SAGAN OM RINGEN?", a: ["TROLLKARL", "ALV", "DVÄRG"], correct: 0 },
+  { q: "VILKET GREKISKT MONSTER HADE ORMAR ISTÄLLET FÖR HÅR?", a: ["MEDUSA", "HERKULES", "ZEUS"], correct: 0 },
+  { q: "VAD KALLAS EN VARELSE SOM ÄR HALV HÄST OCH HALV MÄNNISKA?", a: ["KENTAUR", "NAJAD", "CYKLOP"], correct: 0 },
+  { q: "VILKEN JÄTTE I SAGORNA HADE BARA ETT ÖGA?", a: ["CYKLOPEN", "TROLLET", "DRAKEN"], correct: 0 },
+  { q: "VAD HETER ASTRID LINDGRENS UNGA DETEKTIV?", a: ["KALLE BLOMKVIST", "EMIL", "KARLSSON"], correct: 0 },
+
+  /* ---- RYMDEN ---- */
+  { q: "HUR LÅNG TID TAR JORDEN PÅ ETT VARV RUNT SOLEN?", a: ["EN DAG", "ETT ÅR", "EN MÅNAD"], correct: 1 },
+  { q: "VAD HETER DEN NÄRMASTE STJÄRNAN EFTER SOLEN?", a: ["PROXIMA CENTAURI", "POLSTJÄRNAN", "SIRIUS"], correct: 0 },
+  { q: "VAD KALLAS ETT OMRÅDE I RYMDEN SOM SUGER IN ÄVEN LJUS?", a: ["SVART HÅL", "KOMET", "NEBULOSA"], correct: 0 },
+  { q: "VILKEN PLANET ROTERAR LIGGANDE PÅ SIDAN?", a: ["URANUS", "JORDEN", "MARS"], correct: 0 },
+  { q: "HUR MÅNGA NATURLIGA MÅNAR HAR JORDEN?", a: ["EN", "TVÅ", "TRE"], correct: 0 },
+  { q: "HUR LÅNG TID TAR LJUSET FRÅN SOLEN TILL JORDEN?", a: ["8 MINUTER", "1 SEKUND", "1 DAG"], correct: 0 },
+  { q: "VAD KALLAS LÄRAN OM RYMDEN OCH STJÄRNORNA?", a: ["ASTRONOMI", "GEOLOGI", "BIOLOGI"], correct: 0 },
+  { q: "VILKEN PLANET KALLAS MORGONSTJÄRNAN?", a: ["VENUS", "MARS", "JUPITER"], correct: 0 },
+  { q: "VAD MÄTER MAN AVSTÅND I RYMDEN MED?", a: ["LJUSÅR", "BARA METER", "BARA KILOMETER"], correct: 0 },
+  { q: "VAD KALLAS EN SAMLING AV MILJARDER STJÄRNOR?", a: ["GALAX", "PLANET", "KOMET"], correct: 0 },
+
+  /* ---- SIFFROR / FÄRGER ---- */
+  { q: "VAD BLIR 12 GÅNGER 12?", a: ["124", "144", "100"], correct: 1 },
+  { q: "VAD BLIR 100 DELAT PÅ 4?", a: ["20", "25", "40"], correct: 1 },
+  { q: "VILKET ÄR ETT PRIMTAL?", a: ["9", "7", "8"], correct: 1 },
+  { q: "VAD BLIR 7 GÅNGER 8?", a: ["54", "56", "58"], correct: 1 },
+  { q: "HUR MÅNGA GRADER ÄR EN RÄT VINKEL?", a: ["45", "90", "180"], correct: 1 },
+  { q: "VAD KALLAS SVARET PÅ EN MULTIPLIKATION?", a: ["SUMMA", "PRODUKT", "DIFFERENS"], correct: 1 },
+  { q: "VAD BLIR 15 PLUS 27?", a: ["42", "41", "52"], correct: 0 },
+  { q: "HUR MÅNGA SIDOR HAR EN HEXAGON?", a: ["FEM", "SEX", "ÅTTA"], correct: 1 },
+  { q: "VAD BLIR HÄLFTEN AV 250?", a: ["125", "150", "100"], correct: 0 },
+  { q: "VILKA ÄR DE TRE PRIMÄRFÄRGERNA?", a: ["RÖD GUL BLÅ", "GRÖN LILA BRUN", "SVART VIT GRÅ"], correct: 0 },
+];
+
 /* ============ STATE ============ */
-let order = [];        // shuffled indices into POOL
+let activePool = POOLS.latt;  // currently selected difficulty pool
+let order = [];        // shuffled indices into activePool
 let poolPos = 0;       // where we are in the shuffled pool
 let round = [];        // current 5 questions
 let currentQ = 0;
@@ -384,18 +654,22 @@ function showScreen(id) {
 }
 
 /* ============ GAME ============ */
-function startGame() {
+const LEVEL_BADGES = { latt: "⭐ LÄTT", medel: "⭐⭐ MEDEL", svar: "⭐⭐⭐ SVÅR" };
+function startGame(level) {
   initAudio();
-  order = shuffle([...Array(POOL.length).keys()]);
+  if (!POOLS[level]) level = "latt";
+  activePool = POOLS[level];
+  document.getElementById("levelBadge").textContent = LEVEL_BADGES[level];
+  order = shuffle([...Array(activePool.length).keys()]);
   poolPos = 0;
   startRound();
 }
 function startRound() {
   if (poolPos + 5 > order.length) {        // not enough left -> reshuffle
-    order = shuffle([...Array(POOL.length).keys()]);
+    order = shuffle([...Array(activePool.length).keys()]);
     poolPos = 0;
   }
-  round = order.slice(poolPos, poolPos + 5).map(idx => POOL[idx]);
+  round = order.slice(poolPos, poolPos + 5).map(idx => activePool[idx]);
   poolPos += 5;
   currentQ = 0;
   score = 0;
@@ -504,9 +778,12 @@ function showSummary() {
 }
 
 /* ============ EVENTS ============ */
-document.getElementById("startBtn").addEventListener("click", startGame);
+document.querySelectorAll(".level-btn").forEach(btn => {
+  btn.addEventListener("click", () => startGame(btn.dataset.level));
+});
 document.getElementById("nextBtn").addEventListener("click", nextQuestion);
 document.getElementById("againBtn").addEventListener("click", startRound);
+document.getElementById("levelBtn").addEventListener("click", () => showScreen("start"));
 
 // prevent double-tap zoom
 document.addEventListener("dblclick", e => e.preventDefault(), { passive: false });
