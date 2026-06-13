@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TIPSPROMENAD">
+<meta name="theme-color" content="#1a1aff">
+<title>TIPSPROMENAD</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    text-transform: uppercase;
+    -webkit-user-select: none; user-select: none;
+    background: #1a1aff;
+  }
+  body {
+    background: linear-gradient(160deg, #4f6bff 0%, #7c4dff 50%, #b14dff 100%);
+    display: flex; flex-direction: column;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    color: #fff;
+  }
+  #confetti {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 9999;
+  }
+  .screen {
+    flex: 1; display: none; flex-direction: column;
+    padding: 28px 32px;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+  }
+  .screen.active { display: flex; }
+
+  /* ---- START SCREEN ---- */
+  #start { justify-content: center; align-items: center; text-align: center; }
+  .logo {
+    font-size: 64px; font-weight: 900; letter-spacing: 2px;
+    color: #fff; text-shadow: 0 6px 0 rgba(0,0,0,0.18); line-height: 1.05;
+    margin-bottom: 8px;
+  }
+  .logo .emoji { display:block; font-size: 80px; margin-bottom: 8px; }
+  .subtitle { font-size: 26px; font-weight: 700; color: #ffe14d; margin-bottom: 48px; }
+  .big-btn {
+    font-family: inherit; text-transform: uppercase;
+    border: none; border-radius: 28px;
+    font-weight: 900; cursor: pointer;
+    min-height: 90px; padding: 0 56px;
+    font-size: 36px; color: #1a1aff;
+    background: #ffe14d;
+    box-shadow: 0 8px 0 #c9ab00;
+    transition: transform .08s, box-shadow .08s;
+  }
+  .big-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #c9ab00; }
+
+  /* ---- QUIZ SCREEN ---- */
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 22px; }
+  .progress { font-size: 24px; font-weight: 800; color: #ffe14d; }
+  .dots { display:flex; gap: 10px; }
+  .dot { width: 18px; height: 18px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+  .dot.done { background: #ffe14d; }
+  .dot.cur { background: #fff; box-shadow: 0 0 0 4px rgba(255,255,255,0.35); }
+
+  .question {
+    font-size: 40px; font-weight: 900; line-height: 1.15;
+    text-align: center; margin: 10px 0 28px;
+    text-shadow: 0 4px 0 rgba(0,0,0,0.15);
+  }
+  .answers { display: flex; flex-direction: column; gap: 18px; max-width: 760px; width: 100%; margin: 0 auto; }
+  .answer {
+    font-family: inherit; text-transform: uppercase;
+    display: flex; align-items: center; gap: 20px;
+    border: none; border-radius: 22px;
+    min-height: 92px; padding: 16px 26px;
+    font-size: 28px; font-weight: 800; text-align: left;
+    background: #fff; color: #2a2a55; cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.22);
+    transition: transform .08s, box-shadow .08s, background .15s;
+  }
+  .answer:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.22); }
+  .answer .label {
+    flex: 0 0 auto; width: 58px; height: 58px; border-radius: 50%;
+    background: #1a1aff; color: #fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 30px; font-weight: 900;
+  }
+  .answer.locked { pointer-events: none; }
+  .answer.correct { background: #2ecc71; color: #fff; box-shadow: 0 6px 0 #1e9c54; }
+  .answer.correct .label { background: rgba(255,255,255,0.3); }
+  .answer.wrong { background: #ff4d5e; color: #fff; box-shadow: 0 6px 0 #c12b3a; }
+  .answer.wrong .label { background: rgba(255,255,255,0.3); }
+  .answer.dim { opacity: 0.45; }
+
+  .feedback {
+    text-align:center; font-size: 34px; font-weight: 900;
+    min-height: 46px; margin: 26px 0 14px; line-height: 1.1;
+  }
+  .feedback.good { color: #ffe14d; }
+  .feedback.bad { color: #fff; }
+
+  .next-wrap { display:flex; justify-content:center; margin-top: 6px; min-height: 96px; }
+  .hidden { visibility: hidden; }
+
+  /* ---- SUMMARY SCREEN ---- */
+  #summary { align-items: center; text-align: center; }
+  .sum-emoji { font-size: 72px; margin-bottom: 4px; }
+  .sum-score { font-size: 80px; font-weight: 900; color: #ffe14d; line-height: 1; margin-bottom: 6px; }
+  .sum-msg { font-size: 34px; font-weight: 900; margin-bottom: 24px; line-height: 1.15; }
+  .review { width: 100%; max-width: 760px; display:flex; flex-direction:column; gap: 12px; margin-bottom: 28px; }
+  .review-item {
+    display:flex; align-items:center; gap: 16px;
+    background: rgba(255,255,255,0.14); border-radius: 18px;
+    padding: 14px 20px; text-align:left;
+  }
+  .review-item .mark { font-size: 34px; flex: 0 0 auto; }
+  .review-item .rq { font-size: 20px; font-weight: 800; line-height: 1.2; }
+  .review-item .ra { font-size: 17px; font-weight: 700; color: #ffe14d; margin-top: 3px; }
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+
+<!-- START -->
+<div id="start" class="screen active">
+  <div class="logo"><span class="emoji">🚶‍♂️🌲</span>TIPSPROMENAD</div>
+  <div class="subtitle">FRÅGOR FÖR SMARTA BARN!</div>
+  <button class="big-btn" id="startBtn">STARTA! ▶</button>
+</div>
+
+<!-- QUIZ -->
+<div id="quiz" class="screen">
+  <div class="topbar">
+    <div class="progress" id="progress">FRÅGA 1 AV 5</div>
+    <div class="dots" id="dots"></div>
+  </div>
+  <div class="question" id="question">FRÅGA?</div>
+  <div class="answers" id="answers"></div>
+  <div class="feedback" id="feedback"></div>
+  <div class="next-wrap">
+    <button class="big-btn hidden" id="nextBtn">NÄSTA FRÅGA ▶</button>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="summary" class="screen">
+  <div class="sum-emoji" id="sumEmoji">🏆</div>
+  <div class="sum-score" id="sumScore">0/5</div>
+  <div class="sum-msg" id="sumMsg"></div>
+  <div class="review" id="review"></div>
+  <button class="big-btn" id="againBtn">NY OMGÅNG 🔄</button>
+</div>
+
+<script>
+/* ============ QUESTION POOL — 100 frågor, 10 per ämne ============ */
+const POOL = [
+  /* ---- DJUR ---- */
+  { q: "VILKET DJUR SÄGER MU?", a: ["KO", "HÖNA", "GRIS"], correct: 0 },
+  { q: "VILKET DJUR HAR EN LÅNG SNABEL?", a: ["HÄST", "ELEFANT", "KANIN"], correct: 1 },
+  { q: "VAD KALLAS EN BABYHUND?", a: ["KALV", "KYCKLING", "VALP"], correct: 2 },
+  { q: "VILKET DJUR BOR I VATTNET?", a: ["FISK", "GIRAFF", "RÄV"], correct: 0 },
+  { q: "VILKET DJUR HOPPAR OCH HAR EN PÅSE?", a: ["BJÖRN", "KÄNGURU", "ULV"], correct: 1 },
+  { q: "VILKET DJUR ÄR KÄNT FÖR ATT VARA LÅNGSAMT?", a: ["GEPARD", "HARE", "SNIGEL"], correct: 2 },
+  { q: "VILKET DJUR HAR RANDER OCH ÄR SVART OCH VITT?", a: ["ZEBRA", "LEJON", "APA"], correct: 0 },
+  { q: "VAD ÄTER EN KANIN HELST?", a: ["KÖTT", "MOROT", "FISK"], correct: 1 },
+  { q: "VILKET DJUR KAN FLYGA?", a: ["GETT", "GRODA", "FÅGEL"], correct: 2 },
+  { q: "VILKET DJUR ÄR SKOGENS KONUNG I SVERIGE?", a: ["ÄLG", "TIGER", "DELFIN"], correct: 0 },
+
+  /* ---- NATUR / VÄDER ---- */
+  { q: "VAD FALLER FRÅN HIMLEN NÄR DET REGNAR?", a: ["VATTEN", "GODIS", "STENAR"], correct: 0 },
+  { q: "VILKEN FÄRG HAR GRÄSET?", a: ["BLÅ", "GRÖN", "RÖD"], correct: 1 },
+  { q: "VAD KALLAS DET VITA SOM FALLER PÅ VINTERN?", a: ["SAND", "REGN", "SNÖ"], correct: 2 },
+  { q: "VAD LYSER PÅ DAGEN?", a: ["SOLEN", "MÅNEN", "LAMPAN"], correct: 0 },
+  { q: "VAD SER MAN PÅ HIMLEN EFTER REGN OCH SOL?", a: ["MOLN", "REGNBÅGE", "STJÄRNA"], correct: 1 },
+  { q: "VAD VÄXER I SKOGEN OCH ÄR HÖGT?", a: ["GRÄS", "BLOMMA", "TRÄD"], correct: 2 },
+  { q: "VILKEN ÅRSTID ÄR DET VARMAST?", a: ["SOMMAR", "VINTER", "HÖST"], correct: 0 },
+  { q: "VAD BLÅSER NÄR DET ÄR BLÅSIGT?", a: ["SOLEN", "VINDEN", "SNÖN"], correct: 1 },
+  { q: "VAD HÖR MAN NÄR DET ÅSKAR?", a: ["MUSIK", "TYSTNAD", "MULLER"], correct: 2 },
+  { q: "VAR BOR FISKARNA?", a: ["I HAVET", "PÅ MOLN", "I TRÄD"], correct: 0 },
+
+  /* ---- SPORT ---- */
+  { q: "I VILKEN SPORT SPARKAR MAN EN BOLL I MÅL?", a: ["FOTBOLL", "SIMNING", "SCHACK"], correct: 0 },
+  { q: "VAD ÅKER MAN PÅ I BACKEN PÅ VINTERN?", a: ["CYKEL", "SKIDOR", "BÅT"], correct: 1 },
+  { q: "HUR MÅNGA SPELARE I ETT FOTBOLLSLAG PÅ PLAN?", a: ["FEM", "TJUGO", "ELVA"], correct: 2 },
+  { q: "VAD GÖR MAN I EN SIMBASSÄNG?", a: ["SIMMAR", "SOVER", "LÄSER"], correct: 0 },
+  { q: "VILKEN SPORT SPELAR MAN MED RACKET OCH NÄT?", a: ["BOXNING", "TENNIS", "GOLF"], correct: 1 },
+  { q: "VAD VINNER MAN OM MAN KOMMER FÖRST?", a: ["BOLL", "STRAFF", "MEDALJ"], correct: 2 },
+  { q: "I VILKEN SPORT ÅKER MAN PÅ IS MED KLUBBA?", a: ["ISHOCKEY", "RIDNING", "DANS"], correct: 0 },
+  { q: "VAD GÖR MAN NÄR MAN SPRINGER SNABBT?", a: ["GÅR", "SPRINTAR", "STÅR"], correct: 1 },
+  { q: "VAD ANVÄNDER MAN I BASKET?", a: ["PUCK", "RACKET", "BOLL"], correct: 2 },
+  { q: "VAD GÖR MAN PÅ EN CYKEL?", a: ["TRAMPAR", "SIMMAR", "FLYGER"], correct: 0 },
+
+  /* ---- MAT ---- */
+  { q: "VILKEN FRUKT ÄR GUL OCH KRÖKT?", a: ["BANAN", "ÄPPLE", "DRUVA"], correct: 0 },
+  { q: "VAD GÖR MAN GLASS AV?", a: ["STEN", "MJÖLK", "SAND"], correct: 1 },
+  { q: "VILKEN GRÖNSAK ÄR ORANGE OCH LÅNG?", a: ["GURKA", "TOMAT", "MOROT"], correct: 2 },
+  { q: "VAD DRICKER MAN NÄR MAN ÄR TÖRSTIG?", a: ["VATTEN", "SAND", "LERA"], correct: 0 },
+  { q: "VAD LÄGGER MAN PÅ EN PIZZA?", a: ["STENAR", "OST", "PAPPER"], correct: 1 },
+  { q: "VILKEN FRUKT ÄR RÖD OCH RUND?", a: ["BANAN", "CITRON", "ÄPPLE"], correct: 2 },
+  { q: "VAD BAKAR MAN BRÖD AV?", a: ["MJÖL", "SOCKER ENBART", "VATTEN ENBART"], correct: 0 },
+  { q: "VAD ÄR SÖTT OCH MAN ÄTER PÅ LÖRDAG?", a: ["LÖK", "GODIS", "SALT"], correct: 1 },
+  { q: "VAR KOMMER MJÖLK IFRÅN?", a: ["TRÄD", "STEN", "KON"], correct: 2 },
+  { q: "VILKEN MAT ÄR GUL OCH KOMMER FRÅN HÖNS?", a: ["ÄGG", "MOROT", "BANAN"], correct: 0 },
+
+  /* ---- GEOGRAFI ---- */
+  { q: "VAD HETER SVERIGES HUVUDSTAD?", a: ["STOCKHOLM", "GÖTEBORG", "MALMÖ"], correct: 0 },
+  { q: "VILKET LAND BOR VI I?", a: ["NORGE", "SVERIGE", "DANMARK"], correct: 1 },
+  { q: "VAD KALLAS ETT STORT VATTEN MED SALT?", a: ["SJÖ", "FLOD", "HAV"], correct: 2 },
+  { q: "VILKET ÄR SVERIGES GRANNLAND I VÄST?", a: ["NORGE", "TYSKLAND", "SPANIEN"], correct: 0 },
+  { q: "VAD KALLAS ETT MYCKET HÖGT BERG?", a: ["KULLE", "FJÄLL", "GROP"], correct: 1 },
+  { q: "VAD ANVÄNDER MAN FÖR ATT HITTA VÄGEN?", a: ["SKED", "BOLL", "KARTA"], correct: 2 },
+  { q: "VILKEN VÄRLDSDEL BOR VI I?", a: ["EUROPA", "AFRIKA", "ASIEN"], correct: 0 },
+  { q: "VAD KALLAS EN STAD VID HAVET MED BÅTAR?", a: ["SKOG", "HAMN", "ÄNG"], correct: 1 },
+  { q: "VAD ÄR STÖRST?", a: ["EN STAD", "ETT HUS", "EN VÄRLD"], correct: 2 },
+  { q: "VILKEN FÄRG HAR SVERIGES FLAGGA?", a: ["BLÅ OCH GUL", "RÖD OCH VIT", "GRÖN OCH SVART"], correct: 0 },
+
+  /* ---- KROPPEN ---- */
+  { q: "HUR MÅNGA FINGRAR HAR DU PÅ EN HAND?", a: ["FEM", "TRE", "TIO"], correct: 0 },
+  { q: "VAD ANVÄNDER DU FÖR ATT SE?", a: ["ÖRON", "ÖGON", "NÄSA"], correct: 1 },
+  { q: "VAD ANVÄNDER DU FÖR ATT GÅ?", a: ["ARMAR", "ÖRON", "BEN"], correct: 2 },
+  { q: "VAD ANVÄNDER DU FÖR ATT LUKTA?", a: ["NÄSAN", "MUNNEN", "ÖGAT"], correct: 0 },
+  { q: "VAD ANVÄNDER DU FÖR ATT HÖRA?", a: ["ÖGON", "ÖRON", "TÅR"], correct: 1 },
+  { q: "VAD SLÅR I BRÖSTET OCH PUMPAR BLOD?", a: ["MAGEN", "LUNGAN", "HJÄRTAT"], correct: 2 },
+  { q: "VAD TUGGAR DU MATEN MED?", a: ["TÄNDERNA", "HÅRET", "KNÄT"], correct: 0 },
+  { q: "HUR MÅNGA TÅR HAR DU PÅ EN FOT?", a: ["TRE", "FEM", "ÅTTA"], correct: 1 },
+  { q: "VAD VÄXER PÅ DITT HUVUD?", a: ["GRÄS", "FJÄDRAR", "HÅR"], correct: 2 },
+  { q: "VAD ANVÄNDER DU FÖR ATT PRATA?", a: ["MUNNEN", "FOTEN", "ÖRAT"], correct: 0 },
+
+  /* ---- FORDON ---- */
+  { q: "VAD KÖR MAN PÅ VÄGEN MED FYRA HJUL?", a: ["BIL", "BÅT", "FLYGPLAN"], correct: 0 },
+  { q: "VAD FLYGER HÖGT UPP I LUFTEN?", a: ["TÅG", "FLYGPLAN", "CYKEL"], correct: 1 },
+  { q: "VAD ÅKER PÅ RÄLS?", a: ["BUSS", "BÅT", "TÅG"], correct: 2 },
+  { q: "VAD ANVÄNDER BRANDMÄN FÖR ATT SLÄCKA ELD?", a: ["BRANDBIL", "TRAKTOR", "BÅT"], correct: 0 },
+  { q: "VAD FLYTER PÅ VATTNET?", a: ["BIL", "BÅT", "TÅG"], correct: 1 },
+  { q: "VAD HAR TVÅ HJUL OCH MAN TRAMPAR?", a: ["BUSS", "BIL", "CYKEL"], correct: 2 },
+  { q: "VAD FLYGER MED ROTORBLAD PÅ TOPPEN?", a: ["HELIKOPTER", "TÅG", "BÅT"], correct: 0 },
+  { q: "VAD KÖR MÅNGA PASSAGERARE TILL SKOLAN?", a: ["MOTORCYKEL", "BUSS", "CYKEL"], correct: 1 },
+  { q: "VAD ANVÄNDER BÖNDER PÅ ÅKERN?", a: ["FLYGPLAN", "TÅG", "TRAKTOR"], correct: 2 },
+  { q: "VAD FLYGER UT I RYMDEN?", a: ["RAKET", "BIL", "BÅT"], correct: 0 },
+
+  /* ---- SAGOR / FANTASY ---- */
+  { q: "VAD KALLAS EN FLYGANDE ÖDLA SOM SPRUTAR ELD?", a: ["DRAKE", "KANIN", "FISK"], correct: 0 },
+  { q: "VEM BOR I ETT SLOTT OCH BÄR KRONA?", a: ["BONDE", "PRINSESSA", "BAGARE"], correct: 1 },
+  { q: "VAD HAR EN ENHÖRNING PÅ HUVUDET?", a: ["ÖRON", "HATT", "HORN"], correct: 2 },
+  { q: "VAD ANVÄNDER EN HÄXA FÖR ATT FLYGA?", a: ["KVAST", "BIL", "STEGE"], correct: 0 },
+  { q: "VAD KALLAS EN LITEN VARELSE MED VINGAR OCH TROLLSPÖ?", a: ["JÄTTE", "FE", "ORM"], correct: 1 },
+  { q: "VEM RÄDDAR PRINSESSAN I SAGAN?", a: ["DRAKEN", "HÄXAN", "RIDDAREN"], correct: 2 },
+  { q: "VAD GÖR ETT SPÖKE?", a: ["BUAR", "SOVER ALLTID", "LAGAR MAT"], correct: 0 },
+  { q: "VAD ÄR EN JÄTTE?", a: ["NÅGOT PYTTELITET", "NÅGOT JÄTTESTORT", "NÅGOT BLÅTT"], correct: 1 },
+  { q: "VAD ANVÄNDER EN TROLLKARL?", a: ["HAMMARE", "SPADE", "TROLLSPÖ"], correct: 2 },
+  { q: "VAR BOR TROLLEN I SAGORNA?", a: ["I SKOGEN", "I HAVET", "I RYMDEN"], correct: 0 },
+
+  /* ---- RYMDEN ---- */
+  { q: "VILKEN PLANET BOR VI PÅ?", a: ["JORDEN", "MARS", "SOLEN"], correct: 0 },
+  { q: "VAD LYSER PÅ NATTHIMLEN OCH ÄR LITET?", a: ["SOLEN", "STJÄRNA", "MOLN"], correct: 1 },
+  { q: "VAD KALLAS EN PERSON SOM RESER TILL RYMDEN?", a: ["BRANDMAN", "BAGARE", "ASTRONAUT"], correct: 2 },
+  { q: "VAD ÄR RUNT OCH LYSER PÅ NATTEN?", a: ["MÅNEN", "GRÄSET", "BORDET"], correct: 0 },
+  { q: "VILKEN PLANET KALLAS DEN RÖDA PLANETEN?", a: ["JORDEN", "MARS", "MÅNEN"], correct: 1 },
+  { q: "VAD ÅKER MAN UT I RYMDEN MED?", a: ["BÅT", "CYKEL", "RAKET"], correct: 2 },
+  { q: "VAD ÄR SOLEN?", a: ["EN STJÄRNA", "EN PLANET", "EN MÅNE"], correct: 0 },
+  { q: "VAD KALLAS ALLA STJÄRNOR OCH PLANETER TILLSAMMANS?", a: ["SKOGEN", "RYMDEN", "HAVET"], correct: 1 },
+  { q: "VAD HÄNDER MED EN BOLL I RYMDEN?", a: ["DEN SJUNKER", "DEN BRINNER", "DEN SVÄVAR"], correct: 2 },
+  { q: "VILKEN ÄR NÄRMAST SOLEN AV DESSA?", a: ["JORDEN", "MÅNEN", "STJÄRNAN"], correct: 0 },
+
+  /* ---- SIFFROR / FÄRGER ---- */
+  { q: "VAD BLIR 2 PLUS 2?", a: ["4", "5", "3"], correct: 0 },
+  { q: "VILKEN FÄRG FÅR MAN AV BLÅ OCH GUL?", a: ["RÖD", "GRÖN", "LILA"], correct: 1 },
+  { q: "HUR MÅNGA ÄR ETT DUSSIN?", a: ["TIO", "FEM", "TOLV"], correct: 2 },
+  { q: "VILKEN SIFFRA KOMMER EFTER 9?", a: ["10", "8", "11"], correct: 0 },
+  { q: "VILKEN FÄRG HAR SOLEN OFTAST PÅ BILDER?", a: ["BLÅ", "GUL", "SVART"], correct: 1 },
+  { q: "VAD BLIR 5 MINUS 2?", a: ["1", "5", "3"], correct: 2 },
+  { q: "VILKEN FÄRG FÅR MAN AV RÖD OCH GUL?", a: ["ORANGE", "GRÖN", "BLÅ"], correct: 0 },
+  { q: "HUR MÅNGA DAGAR FINNS I EN VECKA?", a: ["FEM", "SJU", "TIO"], correct: 1 },
+  { q: "VAD BLIR 3 PLUS 4?", a: ["6", "5", "7"], correct: 2 },
+  { q: "VILKEN FÄRG HAR SNÖ?", a: ["VIT", "SVART", "RÖD"], correct: 0 },
+];
+
+/* ============ STATE ============ */
+let order = [];        // shuffled indices into POOL
+let poolPos = 0;       // where we are in the shuffled pool
+let round = [];        // current 5 questions
+let currentQ = 0;
+let score = 0;
+let answers = [];      // {chosen, correct} per question
+let answered = false;
+
+const PRAISE = ["🎉 RÄTT!", "⭐ TOPPEN!", "🔥 SNYGGT!", "💪 PRECIS!"];
+
+/* ============ AUDIO (Web Audio API) ============ */
+let audioCtx = null;
+function initAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { audioCtx = null; }
+  }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+}
+function tone(freq, start, dur, type) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  const t = audioCtx.currentTime + start;
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(t); osc.stop(t + dur + 0.02);
+}
+function playCorrect() {
+  initAudio();
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((f, i) => tone(f, i * 0.12, 0.18, "triangle"));
+}
+function playWrong() {
+  initAudio();
+  const notes = [300, 250, 200];
+  notes.forEach((f, i) => tone(f, i * 0.15, 0.25, "sawtooth"));
+}
+
+/* ============ CONFETTI ============ */
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+let confettiPieces = [];
+let confettiRAF = null;
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+const CONFETTI_COLORS = ["#ffe14d", "#ff4d5e", "#2ecc71", "#4f6bff", "#b14dff", "#ff9c33", "#ffffff"];
+function launchConfetti(amount) {
+  for (let i = 0; i < amount; i++) {
+    confettiPieces.push({
+      x: Math.random() * canvas.width,
+      y: -20 - Math.random() * canvas.height * 0.3,
+      w: 8 + Math.random() * 8,
+      h: 10 + Math.random() * 10,
+      color: CONFETTI_COLORS[(Math.random() * CONFETTI_COLORS.length) | 0],
+      vy: 2 + Math.random() * 4,
+      vx: -2 + Math.random() * 4,
+      rot: Math.random() * Math.PI,
+      vr: -0.2 + Math.random() * 0.4
+    });
+  }
+  if (!confettiRAF) confettiRAF = requestAnimationFrame(stepConfetti);
+}
+function stepConfetti() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  for (let i = confettiPieces.length - 1; i >= 0; i--) {
+    const p = confettiPieces[i];
+    p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+    ctx.save();
+    ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    ctx.fillStyle = p.color;
+    ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    ctx.restore();
+    if (p.y > canvas.height + 30) confettiPieces.splice(i, 1);
+  }
+  if (confettiPieces.length > 0) {
+    confettiRAF = requestAnimationFrame(stepConfetti);
+  } else {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiRAF = null;
+  }
+}
+
+/* ============ HELPERS ============ */
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = (Math.random() * (i + 1)) | 0;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+/* ============ GAME ============ */
+function startGame() {
+  initAudio();
+  order = shuffle([...Array(POOL.length).keys()]);
+  poolPos = 0;
+  startRound();
+}
+function startRound() {
+  if (poolPos + 5 > order.length) {        // not enough left -> reshuffle
+    order = shuffle([...Array(POOL.length).keys()]);
+    poolPos = 0;
+  }
+  round = order.slice(poolPos, poolPos + 5).map(idx => POOL[idx]);
+  poolPos += 5;
+  currentQ = 0;
+  score = 0;
+  answers = [];
+  showScreen("quiz");
+  renderQuestion();
+}
+function renderQuestion() {
+  answered = false;
+  const item = round[currentQ];
+  document.getElementById("progress").textContent = "FRÅGA " + (currentQ + 1) + " AV 5";
+
+  // dots
+  const dots = document.getElementById("dots");
+  dots.innerHTML = "";
+  for (let i = 0; i < 5; i++) {
+    const d = document.createElement("div");
+    d.className = "dot" + (i < currentQ ? " done" : i === currentQ ? " cur" : "");
+    dots.appendChild(d);
+  }
+
+  document.getElementById("question").textContent = item.q;
+
+  const labels = ["1", "X", "2"];
+  const answersEl = document.getElementById("answers");
+  answersEl.innerHTML = "";
+  item.a.forEach((txt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "answer";
+    btn.innerHTML = '<span class="label">' + labels[i] + '</span><span class="txt">' + txt + '</span>';
+    btn.addEventListener("click", () => chooseAnswer(i));
+    answersEl.appendChild(btn);
+  });
+
+  const fb = document.getElementById("feedback");
+  fb.textContent = ""; fb.className = "feedback";
+  document.getElementById("nextBtn").classList.add("hidden");
+}
+function chooseAnswer(chosen) {
+  if (answered) return;
+  answered = true;
+  const item = round[currentQ];
+  const correctIdx = item.correct;
+  const btns = document.querySelectorAll("#answers .answer");
+  btns.forEach((b, i) => {
+    b.classList.add("locked");
+    if (i === correctIdx) b.classList.add("correct");
+    else if (i === chosen) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  answers.push({ chosen, correct: correctIdx });
+  const fb = document.getElementById("feedback");
+  if (chosen === correctIdx) {
+    score++;
+    fb.textContent = PRAISE[(Math.random() * PRAISE.length) | 0];
+    fb.className = "feedback good";
+    playCorrect();
+    launchConfetti(80);
+  } else {
+    fb.textContent = "😬 ÅNEJ! INTE RIKTIGT...";
+    fb.className = "feedback bad";
+    playWrong();
+  }
+
+  const nextBtn = document.getElementById("nextBtn");
+  nextBtn.textContent = currentQ < 4 ? "NÄSTA FRÅGA ▶" : "SE RESULTAT ▶";
+  nextBtn.classList.remove("hidden");
+}
+function nextQuestion() {
+  currentQ++;
+  if (currentQ < 5) renderQuestion();
+  else showSummary();
+}
+function showSummary() {
+  showScreen("summary");
+  document.getElementById("sumScore").textContent = score + "/5";
+
+  let msg, emoji;
+  if (score <= 1) { msg = "ÖVA LITE TILL! 💪"; emoji = "💪"; }
+  else if (score === 2) { msg = "BRA FÖRSÖK! 🙂"; emoji = "🙂"; }
+  else if (score === 3) { msg = "NÄSTAN HELA VÄGEN! 👍"; emoji = "👍"; }
+  else if (score === 4) { msg = "RIKTIGT BRA! 🌟"; emoji = "🌟"; }
+  else { msg = "PERFEKT! DU ÄR FANTASTISK! 🏆"; emoji = "🏆"; }
+  document.getElementById("sumEmoji").textContent = emoji;
+  document.getElementById("sumMsg").textContent = msg;
+
+  const review = document.getElementById("review");
+  review.innerHTML = "";
+  round.forEach((item, i) => {
+    const ans = answers[i];
+    const ok = ans && ans.chosen === ans.correct;
+    const div = document.createElement("div");
+    div.className = "review-item";
+    div.innerHTML =
+      '<span class="mark">' + (ok ? "✅" : "❌") + '</span>' +
+      '<div><div class="rq">' + item.q + '</div>' +
+      '<div class="ra">RÄTT: ' + item.a[item.correct] + '</div></div>';
+    review.appendChild(div);
+  });
+
+  if (score === 5) {
+    launchConfetti(180);
+    setTimeout(() => launchConfetti(120), 400);
+  }
+}
+
+/* ============ EVENTS ============ */
+document.getElementById("startBtn").addEventListener("click", startGame);
+document.getElementById("nextBtn").addEventListener("click", nextQuestion);
+document.getElementById("againBtn").addEventListener("click", startRound);
+
+// prevent double-tap zoom
+document.addEventListener("dblclick", e => e.preventDefault(), { passive: false });
+</script>
+</body>
+</html>
