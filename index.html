@@ -144,21 +144,63 @@
     min-height: 72px; font-size: 26px; padding: 0 40px;
   }
   .ghost-btn:active { box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+
+  /* ---- HOME SCREEN ---- */
+  #home { justify-content: center; align-items: center; text-align: center; position: relative; }
+  .mode-btn { width: 100%; display:flex; align-items:center; justify-content:center; gap: 18px; min-height: 120px; }
+  .mode-btn .stars { font-size: 44px; }
+  .home-btn { margin-top: 34px; }
+
+  /* ---- MATH SCREEN ---- */
+  #math, #mathSummary { position: relative; }
+  #mathSummary { align-items: center; text-align: center; }
+  .timer-wrap {
+    width: 100%; max-width: 760px; height: 24px; margin: 2px auto 26px;
+    background: rgba(255,255,255,0.22); border-radius: 14px; overflow: hidden;
+  }
+  .timer-bar { height: 100%; width: 100%; border-radius: 14px; background: #2ecc71; }
+  .math-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    max-width: 760px; width: 100%; margin: 0 auto;
+  }
+  .math-answer {
+    font-family: inherit; border: none; border-radius: 22px; min-height: 120px;
+    font-size: 48px; font-weight: 900; cursor: pointer;
+    background: linear-gradient(180deg, #ffffff 0%, #d4d8de 100%); color: #5e0710;
+    box-shadow: 0 6px 0 #9aa0a8;
+    transition: transform .08s, box-shadow .08s, background .15s;
+  }
+  .math-answer:active { transform: translateY(4px); box-shadow: 0 2px 0 #9aa0a8; }
+  .math-answer.locked { pointer-events: none; }
+  .math-answer.correct { background: #2ecc71; color: #fff; box-shadow: 0 6px 0 #1e9c54; }
+  .math-answer.wrong { background: #ff4d5e; color: #fff; box-shadow: 0 6px 0 #c12b3a; }
+  .math-answer.dim { opacity: 0.45; }
+  .sum-timeouts { font-size: 22px; font-weight: 800; color: #ffd23f; margin-bottom: 18px; }
 </style>
 </head>
 <body>
 <canvas id="confetti"></canvas>
 
-<!-- START -->
-<div id="start" class="screen active">
+<!-- HOME -->
+<div id="home" class="screen active">
   <button class="flag-toggle" id="flagBtn">🇬🇧 EN</button>
-  <div class="logo"><span class="emoji">🚶‍♂️🌲</span><span id="logoText">TIPSPROMENAD</span></div>
+  <div class="logo"><span class="emoji">🎮</span><span id="homeTitle">VÄLJ SPEL!</span></div>
+  <div class="levels">
+    <button class="big-btn mode-btn" data-mode="quiz"><span class="stars">🚶</span><span class="lbl" id="quizModeLbl">TIPSPROMENAD</span></button>
+    <button class="big-btn mode-btn" data-mode="math"><span class="stars">➕</span><span class="lbl" id="mathModeLbl">MATTELEKEN</span></button>
+  </div>
+</div>
+
+<!-- DIFFICULTY SELECT (shared by both games) -->
+<div id="start" class="screen">
+  <div class="logo"><span class="emoji" id="diffEmoji">🚶</span><span id="diffTitle">TIPSPROMENAD</span></div>
   <div class="subtitle" id="subtitle">VÄLJ SVÅRIGHETSGRAD!</div>
   <div class="levels">
     <button class="big-btn level-btn" data-level="latt"><span class="stars">⭐</span><span class="lbl">LÄTT</span></button>
-    <button class="big-btn level-btn" data-level="medel"><span class="stars">⭐⭐</span><span class="lbl">MEDEL</span></button>
+    <button class="big-btn level-btn" data-level="medel"><span class="stars">⭐⭐</span><span class="lbl">MELLAN</span></button>
     <button class="big-btn level-btn" data-level="svar"><span class="stars">⭐⭐⭐</span><span class="lbl">SVÅR</span></button>
   </div>
+  <button class="big-btn ghost-btn home-btn" id="diffHomeBtn">HEM 🏠</button>
 </div>
 
 <!-- QUIZ -->
@@ -184,7 +226,37 @@
   <div class="review" id="review"></div>
   <div class="sum-buttons">
     <button class="big-btn" id="againBtn">NY OMGÅNG 🔄</button>
-    <button class="big-btn ghost-btn" id="levelBtn">BYT NIVÅ ◀</button>
+    <button class="big-btn ghost-btn" id="levelBtn">BYTA SVÅRIGHET ◀</button>
+    <button class="big-btn ghost-btn" id="quizHomeBtn">HEM 🏠</button>
+  </div>
+</div>
+
+<!-- MATH -->
+<div id="math" class="screen">
+  <div class="topbar">
+    <div class="progress" id="mathProgress">FRÅGA 1 AV 10</div>
+    <div class="level-badge" id="mathBadge">⭐ LÄTT</div>
+  </div>
+  <div class="timer-wrap"><div class="timer-bar" id="timerBar"></div></div>
+  <div class="question" id="mathExpr">3 × 7 = ?</div>
+  <div class="math-grid" id="mathAnswers"></div>
+  <div class="feedback" id="mathFeedback"></div>
+  <div class="next-wrap">
+    <button class="big-btn hidden" id="mathNextBtn">NÄSTA FRÅGA ▶</button>
+  </div>
+</div>
+
+<!-- MATH SUMMARY -->
+<div id="mathSummary" class="screen">
+  <div class="sum-emoji" id="mathSumEmoji">🏆</div>
+  <div class="sum-score" id="mathSumScore">0/10</div>
+  <div class="sum-msg" id="mathSumMsg"></div>
+  <div class="sum-timeouts" id="mathTimeouts"></div>
+  <div class="review" id="mathReview"></div>
+  <div class="sum-buttons">
+    <button class="big-btn" id="mathAgainBtn">NY OMGÅNG 🔄</button>
+    <button class="big-btn ghost-btn" id="mathDiffBtn">BYTA SVÅRIGHET ◀</button>
+    <button class="big-btn ghost-btn" id="mathHomeBtn">HEM 🏠</button>
   </div>
 </div>
 
@@ -931,34 +1003,50 @@ const POOLS = { sv: POOLS_SV, en: POOLS_EN };
 const I18N = {
   sv: {
     title: "TIPSPROMENAD",
+    chooseGame: "VÄLJ SPEL!",
+    quizMode: "TIPSPROMENAD",
+    mathMode: "MATTELEKEN",
     subtitle: "VÄLJ SVÅRIGHETSGRAD!",
-    levels: { latt: "LÄTT", medel: "MEDEL", svar: "SVÅR" },
-    badges: { latt: "⭐ LÄTT", medel: "⭐⭐ MEDEL", svar: "⭐⭐⭐ SVÅR" },
+    levels: { latt: "LÄTT", medel: "MELLAN", svar: "SVÅR" },
+    badges: { latt: "⭐ LÄTT", medel: "⭐⭐ MELLAN", svar: "⭐⭐⭐ SVÅR" },
     progress: n => "FRÅGA " + n + " AV 5",
+    mathProgress: n => "FRÅGA " + n + " AV 10",
     nextQ: "NÄSTA FRÅGA ▶",
     seeResult: "SE RESULTAT ▶",
     praise: ["🎉 RÄTT!", "⭐ TOPPEN!", "🔥 SNYGGT!", "💪 PRECIS!"],
     wrong: "😬 ÅNEJ! INTE RIKTIGT...",
+    timeUp: "⏱ TIDEN ÄR UTE!",
+    timeouts: "TIDSSLUT",
     summary: ["ÖVA LITE TILL! 💪", "BRA FÖRSÖK! 🙂", "NÄSTAN HELA VÄGEN! 👍", "RIKTIGT BRA! 🌟", "PERFEKT! DU ÄR FANTASTISK! 🏆"],
+    mathSummary: ["ÖVA LITE TILL! 💪", "BRA FÖRSÖK! 🙂", "HALVVÄGS DIT! 👍", "RIKTIGT BRA! 🌟", "MATTEMÄSTARE! 🏆"],
     correctLabel: "RÄTT: ",
     newRound: "NY OMGÅNG 🔄",
-    changeLevel: "BYT NIVÅ ◀",
+    changeDiff: "BYTA SVÅRIGHET ◀",
+    home: "HEM 🏠",
     flag: "🇬🇧 EN"
   },
   en: {
     title: "QUIZ WALK",
+    chooseGame: "CHOOSE A GAME!",
+    quizMode: "QUIZ GAME",
+    mathMode: "MATH GAME",
     subtitle: "CHOOSE DIFFICULTY!",
     levels: { latt: "EASY", medel: "MEDIUM", svar: "HARD" },
     badges: { latt: "⭐ EASY", medel: "⭐⭐ MEDIUM", svar: "⭐⭐⭐ HARD" },
     progress: n => "QUESTION " + n + " OF 5",
+    mathProgress: n => "QUESTION " + n + " OF 10",
     nextQ: "NEXT QUESTION ▶",
     seeResult: "SEE RESULT ▶",
     praise: ["🎉 CORRECT!", "⭐ AWESOME!", "🔥 NICE!", "💪 EXACTLY!"],
     wrong: "😬 OH NO! NOT QUITE...",
+    timeUp: "⏱ TIME'S UP!",
+    timeouts: "TIMEOUTS",
     summary: ["KEEP PRACTISING! 💪", "GOOD TRY! 🙂", "ALMOST THERE! 👍", "REALLY GOOD! 🌟", "PERFECT! YOU ARE AMAZING! 🏆"],
+    mathSummary: ["KEEP PRACTISING! 💪", "GOOD TRY! 🙂", "HALFWAY THERE! 👍", "REALLY GOOD! 🌟", "MATH MASTER! 🏆"],
     correctLabel: "CORRECT: ",
     newRound: "NEW ROUND 🔄",
-    changeLevel: "CHANGE LEVEL ◀",
+    changeDiff: "CHANGE DIFFICULTY ◀",
+    home: "HOME 🏠",
     flag: "🇸🇪 SV"
   }
 };
@@ -975,6 +1063,23 @@ let currentQ = 0;
 let score = 0;
 let answers = [];      // {chosen, correct} per question
 let answered = false;
+
+// shared / math-game state
+let currentMode = "quiz";   // "quiz" | "math"
+const MATH_CONFIG = {
+  latt:  { ops: ["+", "−"],                range: 50,  time: 60 },
+  medel: { ops: ["+", "−", "×"],           range: 200, time: 45 },
+  svar:  { ops: ["+", "−", "×", "÷"],      range: 200, time: 30 }
+};
+let mathLevel = "latt";
+let mathQuestions = [];     // [{ text, answer, options, chosen, timedOut }]
+let mathIndex = 0;
+let mathScore = 0;
+let mathTimeouts = 0;
+let mathAnswered = false;
+let timerRAF = null;
+let timerStart = 0;
+let timerDuration = 0;
 
 /* ============ AUDIO (Web Audio API) ============ */
 let audioCtx = null;
@@ -1007,6 +1112,10 @@ function playWrong() {
   initAudio();
   const notes = [300, 250, 200];
   notes.forEach((f, i) => tone(f, i * 0.15, 0.25, "sawtooth"));
+}
+function playTimeout() {
+  initAudio();
+  tone(150, 0, 0.6, "sawtooth");
 }
 
 /* ============ CONFETTI ============ */
@@ -1190,19 +1299,230 @@ function showSummary() {
   }
 }
 
+/* ============ MATH GAME ============ */
+function randInt(min, max) { return min + Math.floor(Math.random() * (max - min + 1)); }
+
+function genMathQuestion(level) {
+  const cfg = MATH_CONFIG[level];
+  const op = cfg.ops[(Math.random() * cfg.ops.length) | 0];
+  const range = cfg.range;
+  let a, b, answer, text;
+  if (op === "+") {
+    a = randInt(1, range - 1);
+    b = randInt(1, range - a);          // sum stays within range
+    answer = a + b; text = a + " + " + b;
+  } else if (op === "−") {
+    a = randInt(1, range);
+    b = randInt(1, a);                  // a >= b -> never negative
+    answer = a - b; text = a + " − " + b;
+  } else if (op === "×") {
+    a = randInt(1, 10); b = randInt(1, 10);   // max 10×10
+    answer = a * b; text = a + " × " + b;
+  } else {                              // ÷ : build a×b first so result is integer
+    a = randInt(1, 10); b = randInt(1, 10);
+    answer = b; text = (a * b) + " ÷ " + a;
+  }
+  return { text: text + " = ?", answer };
+}
+
+function buildOptions(answer) {
+  const opts = new Set([answer]);
+  let guard = 0;
+  while (opts.size < 4 && guard < 200) {
+    guard++;
+    const spread = Math.max(5, Math.floor(answer * 0.25) + 3);
+    const delta = randInt(1, spread);
+    let cand = answer + (Math.random() < 0.5 ? -delta : delta);
+    if (cand < 0) cand = answer + delta;
+    if (cand >= 0 && cand !== answer) opts.add(cand);
+  }
+  let extra = answer + 1;               // fallback fill (tiny answers)
+  while (opts.size < 4) { if (extra >= 0 && !opts.has(extra)) opts.add(extra); extra++; }
+  return shuffle([...opts]);
+}
+
+function startMath(level) {
+  initAudio();
+  if (!MATH_CONFIG[level]) level = "latt";
+  mathLevel = level;
+  document.getElementById("mathBadge").textContent = I18N[lang].badges[level];
+  newMathRound();
+}
+
+function newMathRound() {
+  mathQuestions = [];
+  for (let i = 0; i < 10; i++) {
+    const q = genMathQuestion(mathLevel);
+    q.options = buildOptions(q.answer);
+    q.chosen = null; q.timedOut = false;
+    mathQuestions.push(q);
+  }
+  mathIndex = 0; mathScore = 0; mathTimeouts = 0;
+  showScreen("math");
+  renderMath();
+}
+
+function renderMath() {
+  mathAnswered = false;
+  const q = mathQuestions[mathIndex];
+  document.getElementById("mathProgress").textContent = I18N[lang].mathProgress(mathIndex + 1);
+  document.getElementById("mathExpr").textContent = q.text;
+
+  const grid = document.getElementById("mathAnswers");
+  grid.innerHTML = "";
+  q.options.forEach(val => {
+    const btn = document.createElement("button");
+    btn.className = "math-answer";
+    btn.textContent = val;
+    btn.addEventListener("click", () => chooseMath(val, btn));
+    grid.appendChild(btn);
+  });
+
+  const fb = document.getElementById("mathFeedback");
+  fb.textContent = ""; fb.className = "feedback";
+  document.getElementById("mathNextBtn").classList.add("hidden");
+  startTimer(MATH_CONFIG[mathLevel].time);
+}
+
+function startTimer(seconds) {
+  stopTimer();
+  timerDuration = seconds * 1000;
+  timerStart = performance.now();
+  const bar = document.getElementById("timerBar");
+  function step(now) {
+    const frac = Math.max(0, 1 - (now - timerStart) / timerDuration);
+    bar.style.width = (frac * 100) + "%";
+    bar.style.background = frac > 0.5 ? "#2ecc71" : frac > 0.25 ? "#ffcc00" : "#ff4d5e";
+    if (frac <= 0) { timerRAF = null; onTimeout(); return; }
+    timerRAF = requestAnimationFrame(step);
+  }
+  bar.style.width = "100%";
+  bar.style.background = "#2ecc71";
+  timerRAF = requestAnimationFrame(step);
+}
+function stopTimer() {
+  if (timerRAF) { cancelAnimationFrame(timerRAF); timerRAF = null; }
+}
+
+function lockMathButtons(highlightChosen) {
+  const q = mathQuestions[mathIndex];
+  document.querySelectorAll("#mathAnswers .math-answer").forEach(b => {
+    b.classList.add("locked");
+    if (Number(b.textContent) === q.answer) b.classList.add("correct");
+    else if (b === highlightChosen) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+}
+
+function chooseMath(val, btn) {
+  if (mathAnswered) return;
+  mathAnswered = true;
+  stopTimer();
+  const q = mathQuestions[mathIndex];
+  q.chosen = val;
+  lockMathButtons(btn);
+
+  const t = I18N[lang];
+  const fb = document.getElementById("mathFeedback");
+  if (val === q.answer) {
+    mathScore++;
+    fb.textContent = t.praise[(Math.random() * t.praise.length) | 0];
+    fb.className = "feedback good";
+    playCorrect();
+    launchConfetti(80);
+  } else {
+    fb.textContent = t.wrong;
+    fb.className = "feedback bad";
+    playWrong();
+  }
+  const nb = document.getElementById("mathNextBtn");
+  nb.textContent = mathIndex < 9 ? t.nextQ : t.seeResult;
+  nb.classList.remove("hidden");
+}
+
+function onTimeout() {
+  if (mathAnswered) return;
+  mathAnswered = true;
+  const q = mathQuestions[mathIndex];
+  q.timedOut = true; q.chosen = null;
+  mathTimeouts++;
+  lockMathButtons(null);
+  const fb = document.getElementById("mathFeedback");
+  fb.textContent = I18N[lang].timeUp;
+  fb.className = "feedback bad";
+  playTimeout();
+  setTimeout(nextMath, 1500);
+}
+
+function nextMath() {
+  mathIndex++;
+  if (mathIndex < 10) renderMath();
+  else showMathSummary();
+}
+
+function showMathSummary() {
+  stopTimer();
+  showScreen("mathSummary");
+  const t = I18N[lang];
+  document.getElementById("mathSumScore").textContent = mathScore + "/10";
+
+  const idx = mathScore <= 2 ? 0 : mathScore <= 4 ? 1 : mathScore <= 6 ? 2 : mathScore <= 8 ? 3 : 4;
+  document.getElementById("mathSumEmoji").textContent = SUMMARY_EMOJI[idx];
+  document.getElementById("mathSumMsg").textContent = t.mathSummary[idx];
+
+  const toEl = document.getElementById("mathTimeouts");
+  if (mathLevel === "svar") {
+    toEl.textContent = t.timeouts + ": " + mathTimeouts;
+    toEl.style.display = "block";
+  } else {
+    toEl.style.display = "none";
+  }
+
+  const review = document.getElementById("mathReview");
+  review.innerHTML = "";
+  mathQuestions.forEach(q => {
+    const ok = q.chosen === q.answer;
+    const div = document.createElement("div");
+    div.className = "review-item";
+    const detail = ok ? "" :
+      '<div class="ra">' + t.correctLabel + q.answer + (q.timedOut ? " ⏱" : "") + '</div>';
+    div.innerHTML =
+      '<span class="mark">' + (ok ? "✅" : "❌") + '</span>' +
+      '<div><div class="rq">' + q.text + '</div>' + detail + '</div>';
+    review.appendChild(div);
+  });
+
+  if (mathScore >= 8) {
+    launchConfetti(180);
+    setTimeout(() => launchConfetti(120), 400);
+  }
+}
+
 /* ============ LANGUAGE ============ */
 function applyLang() {
   const t = I18N[lang];
   document.documentElement.lang = lang;
   document.title = t.title;
-  document.getElementById("logoText").textContent = t.title;
+  // home
+  document.getElementById("homeTitle").textContent = t.chooseGame;
+  document.getElementById("quizModeLbl").textContent = t.quizMode;
+  document.getElementById("mathModeLbl").textContent = t.mathMode;
+  document.getElementById("flagBtn").textContent = t.flag;
+  // difficulty select (shared)
   document.getElementById("subtitle").textContent = t.subtitle;
+  document.getElementById("diffTitle").textContent = currentMode === "math" ? t.mathMode : t.quizMode;
   document.querySelectorAll(".level-btn").forEach(btn => {
     btn.querySelector(".lbl").textContent = t.levels[btn.dataset.level];
   });
-  document.getElementById("flagBtn").textContent = t.flag;
+  document.getElementById("diffHomeBtn").textContent = t.home;
+  // quiz summary buttons
   document.getElementById("againBtn").textContent = t.newRound;
-  document.getElementById("levelBtn").textContent = t.changeLevel;
+  document.getElementById("levelBtn").textContent = t.changeDiff;
+  document.getElementById("quizHomeBtn").textContent = t.home;
+  // math summary buttons
+  document.getElementById("mathAgainBtn").textContent = t.newRound;
+  document.getElementById("mathDiffBtn").textContent = t.changeDiff;
+  document.getElementById("mathHomeBtn").textContent = t.home;
 }
 function toggleLang() {
   lang = (lang === "sv") ? "en" : "sv";
@@ -1210,14 +1530,37 @@ function toggleLang() {
   applyLang();
 }
 
+function goDiff(mode) {
+  currentMode = mode;
+  const t = I18N[lang];
+  document.getElementById("diffTitle").textContent = mode === "math" ? t.mathMode : t.quizMode;
+  document.getElementById("diffEmoji").textContent = mode === "math" ? "➕" : "🚶";
+  showScreen("start");
+}
+function goHome() { stopTimer(); showScreen("home"); }
+
 /* ============ EVENTS ============ */
+document.querySelectorAll(".mode-btn").forEach(btn => {
+  btn.addEventListener("click", () => { initAudio(); goDiff(btn.dataset.mode); });
+});
 document.querySelectorAll(".level-btn").forEach(btn => {
-  btn.addEventListener("click", () => startGame(btn.dataset.level));
+  btn.addEventListener("click", () => {
+    if (currentMode === "math") startMath(btn.dataset.level);
+    else startGame(btn.dataset.level);
+  });
 });
 document.getElementById("flagBtn").addEventListener("click", toggleLang);
+document.getElementById("diffHomeBtn").addEventListener("click", goHome);
+// quiz
 document.getElementById("nextBtn").addEventListener("click", nextQuestion);
 document.getElementById("againBtn").addEventListener("click", startRound);
 document.getElementById("levelBtn").addEventListener("click", () => showScreen("start"));
+document.getElementById("quizHomeBtn").addEventListener("click", goHome);
+// math
+document.getElementById("mathNextBtn").addEventListener("click", nextMath);
+document.getElementById("mathAgainBtn").addEventListener("click", newMathRound);
+document.getElementById("mathDiffBtn").addEventListener("click", () => showScreen("start"));
+document.getElementById("mathHomeBtn").addEventListener("click", goHome);
 
 applyLang();
 
