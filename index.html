@@ -223,6 +223,7 @@
   .rim-answer.correct { background: #2ecc71; color: #fff; box-shadow: 0 6px 0 #1e9c54; }
   .rim-answer.wrong { background: #ff4d5e; color: #fff; box-shadow: 0 6px 0 #c12b3a; }
   .rim-answer.dim { opacity: 0.45; }
+  .feedback .explain { display: block; font-size: 30px; font-weight: 900; color: #ffd23f; margin-top: 8px; }
 </style>
 </head>
 <body>
@@ -237,6 +238,7 @@
     <button class="big-btn mode-btn" data-mode="math"><span class="stars">➕</span><span class="lbl" id="mathModeLbl">MATTELEKEN</span></button>
     <button class="big-btn mode-btn" data-mode="flag"><span class="stars">🚩</span><span class="lbl" id="flagModeLbl">FLAGGQUIZ</span></button>
     <button class="big-btn mode-btn" data-mode="rim"><span class="stars">🎤</span><span class="lbl" id="rimModeLbl">RIMGISSAREN</span></button>
+    <button class="big-btn mode-btn" data-mode="plural"><span class="stars">📚</span><span class="lbl" id="pluralModeLbl">PLURALFORMEN</span></button>
   </div>
 </div>
 
@@ -361,6 +363,34 @@
     <button class="big-btn" id="rimAgainBtn">NY OMGÅNG 🔄</button>
     <button class="big-btn ghost-btn" id="rimDiffBtn">BYTA SVÅRIGHET ◀</button>
     <button class="big-btn ghost-btn" id="rimHomeBtn">HEM 🏠</button>
+  </div>
+</div>
+
+<!-- PLURAL GAME -->
+<div id="plural" class="screen">
+  <div class="topbar">
+    <div class="progress" id="pluralProgress">FRÅGA 1 AV 10</div>
+    <div class="level-badge" id="pluralBadge">⭐ LÄTT</div>
+  </div>
+  <div class="rim-prompt" id="pluralPrompt">VAD ÄR PLURAL AV...</div>
+  <div class="rim-word" id="pluralWord">MUS?</div>
+  <div class="rim-grid" id="pluralAnswers"></div>
+  <div class="feedback" id="pluralFeedback"></div>
+  <div class="next-wrap">
+    <button class="big-btn hidden" id="pluralNextBtn">NÄSTA FRÅGA ▶</button>
+  </div>
+</div>
+
+<!-- PLURAL SUMMARY -->
+<div id="pluralSummary" class="screen">
+  <div class="sum-emoji" id="pluralSumEmoji">🏆</div>
+  <div class="sum-score" id="pluralSumScore">0/10</div>
+  <div class="sum-msg" id="pluralSumMsg"></div>
+  <div class="review" id="pluralReview"></div>
+  <div class="sum-buttons">
+    <button class="big-btn" id="pluralAgainBtn">NY OMGÅNG 🔄</button>
+    <button class="big-btn ghost-btn" id="pluralDiffBtn">BYTA SVÅRIGHET ◀</button>
+    <button class="big-btn ghost-btn" id="pluralHomeBtn">HEM 🏠</button>
   </div>
 </div>
 
@@ -1116,6 +1146,9 @@ const I18N = {
     rimMode: "RIMGISSAREN",
     rimPrompt: "VAD RIMMAR MED...",
     rimSummary: ["ÖVA LITE TILL! 💪", "BRA FÖRSÖK! 🙂", "BRA JOBBAT! 👍", "RIKTIGT BRA! 🌟", "RIMMÄSTARE! 🏆"],
+    pluralMode: "PLURALFORMEN",
+    pluralPrompt: "VAD ÄR PLURAL AV...",
+    pluralSummary: ["ÖVA LITE TILL! 💪", "BRA FÖRSÖK! 🙂", "BRA JOBBAT! 👍", "RIKTIGT BRA! 🌟", "PLURALMÄSTARE! 🏆"],
     subtitle: "VÄLJ SVÅRIGHETSGRAD!",
     levels: { latt: "LÄTT", medel: "MELLAN", svar: "SVÅR" },
     badges: { latt: "⭐ LÄTT", medel: "⭐⭐ MELLAN", svar: "⭐⭐⭐ SVÅR" },
@@ -1146,6 +1179,9 @@ const I18N = {
     rimMode: "RHYME GAME",
     rimPrompt: "WHAT RHYMES WITH...",
     rimSummary: ["KEEP PRACTISING! 💪", "GOOD TRY! 🙂", "WELL DONE! 👍", "REALLY GOOD! 🌟", "RHYME MASTER! 🏆"],
+    pluralMode: "PLURALS",
+    pluralPrompt: "WHAT IS THE PLURAL OF...",
+    pluralSummary: ["KEEP PRACTISING! 💪", "GOOD TRY! 🙂", "WELL DONE! 👍", "REALLY GOOD! 🌟", "PLURAL MASTER! 🏆"],
     subtitle: "CHOOSE DIFFICULTY!",
     levels: { latt: "EASY", medel: "MEDIUM", svar: "HARD" },
     badges: { latt: "⭐ EASY", medel: "⭐⭐ MEDIUM", svar: "⭐⭐⭐ HARD" },
@@ -2056,6 +2092,266 @@ function showRimSummary() {
   }
 }
 
+/* ============ PLURAL GAME ============ */
+/* { word, answers:[correct, d1, d2, d3] } — correct is index 0; options shuffled
+   at round build. Plural forms are language-specific, so SV and EN pools differ. */
+const PLURAL_SV = {
+  easy: [
+    { word: "KATT", answers: ["KATTER", "KATTAR", "KATTOR", "KATTEN"] },
+    { word: "HUND", answers: ["HUNDAR", "HUNDER", "HUNDOR", "HUNDEN"] },
+    { word: "BOK", answers: ["BÖCKER", "BOKAR", "BÖKER", "BOKER"] },
+    { word: "BIL", answers: ["BILAR", "BILER", "BILOR", "BILEN"] },
+    { word: "HUS", answers: ["HUS", "HUSAR", "HUSER", "HUSOR"] },
+    { word: "STOL", answers: ["STOLAR", "STOLER", "STOLOR", "STOLEN"] },
+    { word: "BORD", answers: ["BORD", "BORDAR", "BORDER", "BORDEN"] },
+    { word: "BOLL", answers: ["BOLLAR", "BOLLER", "BOLLOR", "BOLLEN"] },
+    { word: "DOCKA", answers: ["DOCKOR", "DOCKAR", "DOCKER", "DOCKEN"] },
+    { word: "FLICKA", answers: ["FLICKOR", "FLICKAR", "FLICKER", "FLICKEN"] },
+    { word: "POJKE", answers: ["POJKAR", "POJKER", "POJKOR", "POJKEN"] },
+    { word: "ÄPPLE", answers: ["ÄPPLEN", "ÄPPLAR", "ÄPPLOR", "ÄPPLER"] },
+    { word: "BLOMMA", answers: ["BLOMMOR", "BLOMMAR", "BLOMMER", "BLOMMEN"] },
+    { word: "SKO", answers: ["SKOR", "SKOAR", "SKOER", "SKON"] },
+    { word: "HATT", answers: ["HATTAR", "HATTER", "HATTOR", "HATTEN"] },
+    { word: "KO", answers: ["KOR", "KOAR", "KOER", "KON"] },
+    { word: "GATA", answers: ["GATOR", "GATAR", "GATER", "GATAN"] },
+    { word: "PENNA", answers: ["PENNOR", "PENNAR", "PENNER", "PENNAN"] },
+    { word: "FÅGEL", answers: ["FÅGLAR", "FÅGELAR", "FÅGLER", "FÅGELN"] },
+    { word: "BANAN", answers: ["BANANER", "BANANAR", "BANANOR", "BANANEN"] }
+  ],
+  medium: [
+    { word: "MUS", answers: ["MÖSS", "MUSAR", "MUSER", "MUSSEN"] },
+    { word: "MAN", answers: ["MÄN", "MANAR", "MANNER", "MANNEN"] },
+    { word: "FOT", answers: ["FÖTTER", "FOTAR", "FOTER", "FOTEN"] },
+    { word: "HAND", answers: ["HÄNDER", "HANDAR", "HANDER", "HANDEN"] },
+    { word: "TAND", answers: ["TÄNDER", "TANDAR", "TANDER", "TANDEN"] },
+    { word: "BARN", answers: ["BARN", "BARNAR", "BARNER", "BARNEN"] },
+    { word: "NATT", answers: ["NÄTTER", "NATTAR", "NATTER", "NATTEN"] },
+    { word: "BROR", answers: ["BRÖDER", "BRORAR", "BROAR", "BRORN"] },
+    { word: "FAR", answers: ["FÄDER", "FARAR", "FAROR", "FAREN"] },
+    { word: "MOR", answers: ["MÖDRAR", "MORAR", "MOROR", "MOREN"] },
+    { word: "GÅS", answers: ["GÄSS", "GÅSAR", "GÅSER", "GÅSEN"] },
+    { word: "LUS", answers: ["LÖSS", "LUSAR", "LUSER", "LUSEN"] },
+    { word: "ÖGA", answers: ["ÖGON", "ÖGAR", "ÖGOR", "ÖGAT"] },
+    { word: "ÖRA", answers: ["ÖRON", "ÖRAR", "ÖROR", "ÖRAT"] },
+    { word: "STAD", answers: ["STÄDER", "STADAR", "STADER", "STADEN"] },
+    { word: "LAND", answers: ["LÄNDER", "LANDAR", "LANDER", "LANDEN"] },
+    { word: "BONDE", answers: ["BÖNDER", "BONDAR", "BONDER", "BONDEN"] },
+    { word: "SON", answers: ["SÖNER", "SONAR", "SONER", "SONEN"] },
+    { word: "DOTTER", answers: ["DÖTTRAR", "DOTTRAR", "DOTTAR", "DOTTERN"] },
+    { word: "RAND", answers: ["RÄNDER", "RANDAR", "RANDER", "RANDEN"] }
+  ],
+  hard: [
+    { word: "MUSEUM", answers: ["MUSEER", "MUSEUMER", "MUSEUMAR", "MUSEUMEN"] },
+    { word: "FORUM", answers: ["FORUM", "FORUMER", "FORUMAR", "FORUMEN"] },
+    { word: "SCHEMA", answers: ["SCHEMAN", "SCHEMOR", "SCHEMAR", "SCHEMER"] },
+    { word: "FAKTUM", answers: ["FAKTA", "FAKTUMER", "FAKTUMAR", "FAKTUMEN"] },
+    { word: "KONTO", answers: ["KONTON", "KONTOR", "KONTOAR", "KONTOER"] },
+    { word: "KEX", answers: ["KEX", "KEXAR", "KEXER", "KEXEN"] },
+    { word: "KOLLEGIUM", answers: ["KOLLEGIER", "KOLLEGIUMER", "KOLLEGIUMAR", "KOLLEGIUMEN"] },
+    { word: "PARTI", answers: ["PARTIER", "PARTIN", "PARTIAR", "PARTIOR"] },
+    { word: "KNÄ", answers: ["KNÄN", "KNÄAR", "KNÄER", "KNÄET"] },
+    { word: "FRÖ", answers: ["FRÖN", "FRÖAR", "FRÖER", "FRÖET"] },
+    { word: "KAFÉ", answers: ["KAFÉER", "KAFÉN", "KAFÉAR", "KAFÉOR"] },
+    { word: "EXAMEN", answers: ["EXAMINA", "EXAMENER", "EXAMNAR", "EXAMENEN"] },
+    { word: "LEXIKON", answers: ["LEXIKON", "LEXIKONER", "LEXIKONAR", "LEXIKONEN"] },
+    { word: "FENOMEN", answers: ["FENOMEN", "FENOMENER", "FENOMENAR", "FENOMENEN"] },
+    { word: "KRITERIUM", answers: ["KRITERIER", "KRITERIUMER", "KRITERIUMAR", "KRITERIUMEN"] },
+    { word: "PARAPLY", answers: ["PARAPLYER", "PARAPLYAR", "PARAPLYOR", "PARAPLYET"] },
+    { word: "GENI", answers: ["GENIER", "GENIN", "GENIAR", "GENIOR"] },
+    { word: "KOMMANDO", answers: ["KOMMANDON", "KOMMANDOR", "KOMMANDOAR", "KOMMANDOER"] },
+    { word: "FRÖKEN", answers: ["FRÖKNAR", "FRÖKENAR", "FRÖKNER", "FRÖKENEN"] },
+    { word: "AKVARIUM", answers: ["AKVARIER", "AKVARIUMER", "AKVARIUMAR", "AKVARIUMEN"] }
+  ]
+};
+const PLURAL_EN = {
+  easy: [
+    { word: "CAT", answers: ["CATS", "CATES", "CATEN", "CATSES"] },
+    { word: "DOG", answers: ["DOGS", "DOGES", "DOGEN", "DOGSES"] },
+    { word: "BOX", answers: ["BOXES", "BOXS", "BOXEN", "BOXIES"] },
+    { word: "BABY", answers: ["BABIES", "BABYS", "BABYES", "BABIS"] },
+    { word: "CAR", answers: ["CARS", "CARES", "CAREN", "CARSES"] },
+    { word: "BUS", answers: ["BUSES", "BUSS", "BUSEN", "BUSIES"] },
+    { word: "DISH", answers: ["DISHES", "DISHS", "DISHEN", "DISHIES"] },
+    { word: "BOOK", answers: ["BOOKS", "BOOKES", "BOOKEN", "BOOKSES"] },
+    { word: "TREE", answers: ["TREES", "TREEES", "TREEN", "TREESES"] },
+    { word: "HOUSE", answers: ["HOUSES", "HOUSS", "HOUSEN", "HOUSIES"] },
+    { word: "BALL", answers: ["BALLS", "BALLES", "BALLEN", "BALLSES"] },
+    { word: "STAR", answers: ["STARS", "STARES", "STAREN", "STARSES"] },
+    { word: "APPLE", answers: ["APPLES", "APPLS", "APPLEN", "APPLIES"] },
+    { word: "CHAIR", answers: ["CHAIRS", "CHAIRES", "CHAIREN", "CHAIRSES"] },
+    { word: "DUCK", answers: ["DUCKS", "DUCKES", "DUCKEN", "DUCKSES"] },
+    { word: "CITY", answers: ["CITIES", "CITYS", "CITYES", "CITIS"] },
+    { word: "PARTY", answers: ["PARTIES", "PARTYS", "PARTYES", "PARTIS"] },
+    { word: "LADY", answers: ["LADIES", "LADYS", "LADYES", "LADIS"] },
+    { word: "BRUSH", answers: ["BRUSHES", "BRUSHS", "BRUSHEN", "BRUSHIES"] },
+    { word: "WATCH", answers: ["WATCHES", "WATCHS", "WATCHEN", "WATCHIES"] }
+  ],
+  medium: [
+    { word: "MAN", answers: ["MEN", "MANS", "MANNES", "MENS"] },
+    { word: "WOMAN", answers: ["WOMEN", "WOMANS", "WOMANES", "WOMENS"] },
+    { word: "FOOT", answers: ["FEET", "FOOTS", "FOOTES", "FEETS"] },
+    { word: "TOOTH", answers: ["TEETH", "TOOTHS", "TOOTHES", "TEETHS"] },
+    { word: "CHILD", answers: ["CHILDREN", "CHILDS", "CHILDES", "CHILDRENS"] },
+    { word: "MOUSE", answers: ["MICE", "MOUSES", "MOUSEN", "MICES"] },
+    { word: "PERSON", answers: ["PEOPLE", "PERSONES", "PERSONEN", "PEOPLES"] },
+    { word: "LEAF", answers: ["LEAVES", "LEAFS", "LEAFES", "LEAVS"] },
+    { word: "KNIFE", answers: ["KNIVES", "KNIFES", "KNIFS", "KNIVS"] },
+    { word: "WOLF", answers: ["WOLVES", "WOLFS", "WOLFES", "WOLVS"] },
+    { word: "LIFE", answers: ["LIVES", "LIFES", "LIFS", "LIVS"] },
+    { word: "SHELF", answers: ["SHELVES", "SHELFS", "SHELFES", "SHELVS"] },
+    { word: "POTATO", answers: ["POTATOES", "POTATOS", "POTATOIES", "POTATOEN"] },
+    { word: "TOMATO", answers: ["TOMATOES", "TOMATOS", "TOMATOIES", "TOMATOEN"] },
+    { word: "GOOSE", answers: ["GEESE", "GOOSES", "GOOSEN", "GEESES"] },
+    { word: "SHEEP", answers: ["SHEEP", "SHEEPS", "SHEEPES", "SHEEPEN"] },
+    { word: "DEER", answers: ["DEER", "DEERS", "DEERES", "DEEREN"] },
+    { word: "OX", answers: ["OXEN", "OXES", "OXS", "OXENS"] },
+    { word: "HALF", answers: ["HALVES", "HALFS", "HALFES", "HALVS"] },
+    { word: "LOAF", answers: ["LOAVES", "LOAFS", "LOAFES", "LOAVS"] }
+  ],
+  hard: [
+    { word: "CACTUS", answers: ["CACTI", "CACTUSES", "CACTUS", "CACTUSS"] },
+    { word: "FUNGUS", answers: ["FUNGI", "FUNGUSES", "FUNGUS", "FUNGUSS"] },
+    { word: "NUCLEUS", answers: ["NUCLEI", "NUCLEUSES", "NUCLEUS", "NUCLEUSS"] },
+    { word: "CRITERION", answers: ["CRITERIA", "CRITERIONS", "CRITERION", "CRITERIUMS"] },
+    { word: "PHENOMENON", answers: ["PHENOMENA", "PHENOMENONS", "PHENOMENON", "PHENOMENAS"] },
+    { word: "ANALYSIS", answers: ["ANALYSES", "ANALYSIS", "ANALYSISES", "ANALYSIES"] },
+    { word: "CRISIS", answers: ["CRISES", "CRISISES", "CRISIS", "CRISISS"] },
+    { word: "THESIS", answers: ["THESES", "THESISES", "THESIS", "THESISS"] },
+    { word: "DATUM", answers: ["DATA", "DATUMS", "DATUM", "DATAS"] },
+    { word: "MEDIUM", answers: ["MEDIA", "MEDIUMS", "MEDIUM", "MEDIAS"] },
+    { word: "BACTERIUM", answers: ["BACTERIA", "BACTERIUMS", "BACTERIUM", "BACTERIAS"] },
+    { word: "CURRICULUM", answers: ["CURRICULA", "CURRICULUMS", "CURRICULUM", "CURRICULAS"] },
+    { word: "ALGA", answers: ["ALGAE", "ALGAS", "ALGA", "ALGAES"] },
+    { word: "LARVA", answers: ["LARVAE", "LARVAS", "LARVA", "LARVAES"] },
+    { word: "VERTEBRA", answers: ["VERTEBRAE", "VERTEBRAS", "VERTEBRA", "VERTEBRAES"] },
+    { word: "AXIS", answers: ["AXES", "AXISES", "AXIS", "AXISS"] },
+    { word: "MATRIX", answers: ["MATRICES", "MATRIXES", "MATRIX", "MATRIXS"] },
+    { word: "RADIUS", answers: ["RADII", "RADIUSES", "RADIUS", "RADIUSS"] },
+    { word: "STIMULUS", answers: ["STIMULI", "STIMULUSES", "STIMULUS", "STIMULUSS"] },
+    { word: "OASIS", answers: ["OASES", "OASISES", "OASIS", "OASISS"] }
+  ]
+};
+const PLURAL_POOLS = { sv: PLURAL_SV, en: PLURAL_EN };
+
+let pluralLevel = "latt";
+let pluralRound = [];   // [{ word, options:[4], correct, chosen }]
+let pluralIndex = 0;
+let pluralScore = 0;
+let pluralAnswered = false;
+
+function pluralPool(level) { return PLURAL_POOLS[lang][RIM_DIFF[level]]; }
+
+function startPlural(level) {
+  initAudio();
+  if (!RIM_DIFF[level]) level = "latt";
+  pluralLevel = level;
+  document.getElementById("pluralBadge").textContent = I18N[lang].badges[level];
+  newPluralRound();
+}
+
+function newPluralRound() {
+  const pool = pluralPool(pluralLevel);
+  const picked = shuffle(pool.slice()).slice(0, 10);
+  pluralRound = picked.map(q => {
+    const correctText = q.answers[0];
+    const options = shuffle(q.answers.slice());
+    return { word: q.word, options, correct: options.indexOf(correctText), chosen: null };
+  });
+  pluralIndex = 0; pluralScore = 0;
+  showScreen("plural");
+  renderPlural();
+}
+
+function renderPlural() {
+  pluralAnswered = false;
+  const q = pluralRound[pluralIndex];
+  document.getElementById("pluralProgress").textContent = I18N[lang].mathProgress(pluralIndex + 1);
+  document.getElementById("pluralPrompt").textContent = I18N[lang].pluralPrompt;
+  document.getElementById("pluralWord").textContent = q.word + "?";
+
+  const grid = document.getElementById("pluralAnswers");
+  grid.innerHTML = "";
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "rim-answer";
+    btn.textContent = opt;
+    btn.addEventListener("click", () => choosePlural(i, btn));
+    grid.appendChild(btn);
+  });
+
+  const fb = document.getElementById("pluralFeedback");
+  fb.textContent = ""; fb.className = "feedback";
+  document.getElementById("pluralNextBtn").classList.add("hidden");
+}
+
+function choosePlural(chosen, btn) {
+  if (pluralAnswered) return;
+  pluralAnswered = true;
+  const q = pluralRound[pluralIndex];
+  q.chosen = chosen;
+  const correctText = q.options[q.correct];
+
+  document.querySelectorAll("#pluralAnswers .rim-answer").forEach((b, i) => {
+    b.classList.add("locked");
+    if (i === q.correct) b.classList.add("correct");
+    else if (i === chosen) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+
+  const t = I18N[lang];
+  const fb = document.getElementById("pluralFeedback");
+  if (chosen === q.correct) {
+    pluralScore++;
+    fb.textContent = t.praise[(Math.random() * t.praise.length) | 0];
+    fb.className = "feedback good";
+    playCorrect();
+    launchConfetti(80);
+  } else {
+    // show the wrong message + explanation "WORD → CORRECT"
+    fb.innerHTML = t.wrong + '<span class="explain">' + q.word + " → " + correctText + '</span>';
+    fb.className = "feedback bad";
+    playWrong();
+  }
+  const nb = document.getElementById("pluralNextBtn");
+  nb.textContent = pluralIndex < 9 ? t.nextQ : t.seeResult;
+  nb.classList.remove("hidden");
+}
+
+function nextPlural() {
+  pluralIndex++;
+  if (pluralIndex < 10) renderPlural();
+  else showPluralSummary();
+}
+
+function showPluralSummary() {
+  showScreen("pluralSummary");
+  const t = I18N[lang];
+  document.getElementById("pluralSumScore").textContent = pluralScore + "/10";
+
+  const idx = pluralScore <= 3 ? 0 : pluralScore <= 5 ? 1 : pluralScore <= 7 ? 2 : pluralScore <= 9 ? 3 : 4;
+  document.getElementById("pluralSumEmoji").textContent = SUMMARY_EMOJI[idx];
+  document.getElementById("pluralSumMsg").textContent = t.pluralSummary[idx];
+
+  const review = document.getElementById("pluralReview");
+  review.innerHTML = "";
+  pluralRound.forEach(q => {
+    const ok = q.chosen === q.correct;
+    const div = document.createElement("div");
+    div.className = "review-item";
+    const detail = ok ? "" :
+      '<div class="ra">' + q.word + " → " + q.options[q.correct] + '</div>';
+    div.innerHTML =
+      '<span class="mark">' + (ok ? "✅" : "❌") + '</span>' +
+      '<div><div class="rq">' + q.word + "?" + '</div>' + detail + '</div>';
+    review.appendChild(div);
+  });
+
+  if (pluralScore >= 8) {
+    launchConfetti(180);
+    setTimeout(() => launchConfetti(120), 400);
+  }
+}
+
 /* ============ LANGUAGE ============ */
 function applyLang() {
   const t = I18N[lang];
@@ -2067,10 +2363,11 @@ function applyLang() {
   document.getElementById("mathModeLbl").textContent = t.mathMode;
   document.getElementById("flagModeLbl").textContent = t.flagMode;
   document.getElementById("rimModeLbl").textContent = t.rimMode;
+  document.getElementById("pluralModeLbl").textContent = t.pluralMode;
   document.getElementById("flagBtn").textContent = t.flag;
   // difficulty select (shared)
   document.getElementById("subtitle").textContent = t.subtitle;
-  document.getElementById("diffTitle").textContent = currentMode === "math" ? t.mathMode : currentMode === "flag" ? t.flagMode : currentMode === "rim" ? t.rimMode : t.quizMode;
+  document.getElementById("diffTitle").textContent = currentMode === "math" ? t.mathMode : currentMode === "flag" ? t.flagMode : currentMode === "rim" ? t.rimMode : currentMode === "plural" ? t.pluralMode : t.quizMode;
   document.querySelectorAll(".level-btn").forEach(btn => {
     btn.querySelector(".lbl").textContent = t.levels[btn.dataset.level];
   });
@@ -2091,6 +2388,10 @@ function applyLang() {
   document.getElementById("rimAgainBtn").textContent = t.newRound;
   document.getElementById("rimDiffBtn").textContent = t.changeDiff;
   document.getElementById("rimHomeBtn").textContent = t.home;
+  // plural summary buttons
+  document.getElementById("pluralAgainBtn").textContent = t.newRound;
+  document.getElementById("pluralDiffBtn").textContent = t.changeDiff;
+  document.getElementById("pluralHomeBtn").textContent = t.home;
 }
 function toggleLang() {
   lang = (lang === "sv") ? "en" : "sv";
@@ -2101,8 +2402,8 @@ function toggleLang() {
 function goDiff(mode) {
   currentMode = mode;
   const t = I18N[lang];
-  document.getElementById("diffTitle").textContent = mode === "math" ? t.mathMode : mode === "flag" ? t.flagMode : mode === "rim" ? t.rimMode : t.quizMode;
-  document.getElementById("diffEmoji").textContent = mode === "math" ? "➕" : mode === "flag" ? "🚩" : mode === "rim" ? "🎤" : "🚶";
+  document.getElementById("diffTitle").textContent = mode === "math" ? t.mathMode : mode === "flag" ? t.flagMode : mode === "rim" ? t.rimMode : mode === "plural" ? t.pluralMode : t.quizMode;
+  document.getElementById("diffEmoji").textContent = mode === "math" ? "➕" : mode === "flag" ? "🚩" : mode === "rim" ? "🎤" : mode === "plural" ? "📚" : "🚶";
   showScreen("start");
 }
 function goHome() { stopTimer(); showScreen("home"); }
@@ -2116,6 +2417,7 @@ document.querySelectorAll(".level-btn").forEach(btn => {
     if (currentMode === "math") startMath(btn.dataset.level);
     else if (currentMode === "flag") startFlag(btn.dataset.level);
     else if (currentMode === "rim") startRim(btn.dataset.level);
+    else if (currentMode === "plural") startPlural(btn.dataset.level);
     else startGame(btn.dataset.level);
   });
 });
@@ -2141,6 +2443,11 @@ document.getElementById("rimNextBtn").addEventListener("click", nextRim);
 document.getElementById("rimAgainBtn").addEventListener("click", newRimRound);
 document.getElementById("rimDiffBtn").addEventListener("click", () => showScreen("start"));
 document.getElementById("rimHomeBtn").addEventListener("click", goHome);
+// plural
+document.getElementById("pluralNextBtn").addEventListener("click", nextPlural);
+document.getElementById("pluralAgainBtn").addEventListener("click", newPluralRound);
+document.getElementById("pluralDiffBtn").addEventListener("click", () => showScreen("start"));
+document.getElementById("pluralHomeBtn").addEventListener("click", goHome);
 
 applyLang();
 
